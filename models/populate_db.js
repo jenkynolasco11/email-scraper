@@ -76,7 +76,7 @@ var Database = {
 };
 
 function populate_db(fn) {
-    Pattern.findOne({ id: 1 }).then(function(pattern) {
+    Pattern.findById(1).then(function(pattern) {
 
         if (pattern != null) {
             fn();

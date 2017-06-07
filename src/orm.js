@@ -14,7 +14,7 @@ global.Sequelize = require('sequelize');
 /////////////////////////////////////////////////////
 // Create database object                          //
 /////////////////////////////////////////////////////
-var sequelize = new Sequelize('postgres://postgres@127.0.0.1:5432/frynet', { logging: false });
+var sequelize = new Sequelize('postgres://postgres:postgres@127.0.0.1:5432/frynet', { logging: false });
 
 /////////////////////////////////////////////////////
 // Keeps track of the amount of models             //
@@ -45,12 +45,11 @@ function _sync(model) {
                     //
                     // Execute
                     //
-                    _callback_on_init();
+                    return resolve(_callback_on_init());
                 }
             });
         }
-        return resolve()
-            // });
+        return resolve(model.sync({ force: true }));
     });
 }
 
