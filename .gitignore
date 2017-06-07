@@ -3,3 +3,4 @@ analytics.txt
 tmp
 config/*
 !config/personalemails.js
+!config/dispatchersettings.js
