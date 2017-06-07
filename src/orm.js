@@ -16,6 +16,11 @@ global.Sequelize = require('sequelize');
 /////////////////////////////////////////////////////
 var sequelize = new Sequelize('postgres://postgres@127.0.0.1:5432/frynet', { logging: false });
 
+// sequelize.authenticate().then(function(err) {
+//     if (err) console.log(err)
+//     else console.log('Authentication OK!')
+// });
+
 /////////////////////////////////////////////////////
 // Keeps track of the amount of models             //
 /////////////////////////////////////////////////////
@@ -28,7 +33,6 @@ function _sync(model) {
     // _models_total++;
 
     return new Promise(function(resolve, reject) {
-        // model.sync({ force: true }).then(function() {
         //
         // Increment number of complete
         //
@@ -36,6 +40,7 @@ function _sync(model) {
         //
         // Check if we are done
         //
+        // console.log(_models_complete, _models_total)
         if (_models_complete == _models_total) {
             _createAssociations(function() {
                 //
@@ -45,12 +50,12 @@ function _sync(model) {
                     //
                     // Execute
                     //
-                    _callback_on_init();
+                    return resolve(_callback_on_init());
                 }
             });
         }
-        return resolve()
-            // });
+        return resolve(model.sync({ force: true }));
+        // });
     });
 }
 
@@ -126,18 +131,22 @@ Search.belongsToMany(Email, { through: SearchEmail, foreignKey: 'search_id' });
 // _sync(global.Email);
 // _sync(global.SearchEmail);
 
-_sync(global.DomainPattern)
+_sync(global.Pattern)
     .then(function() {
-        return _sync(global.Pattern);
-    })
-    .then(function() {
-        return _sync(global.Search);
-    })
-    .then(function() {
+        console.log('here - orm + 1')
         return _sync(global.Email);
     })
     .then(function() {
+        console.log('here - orm + 2')
+        return _sync(global.Search);
+    })
+    .then(function() {
+        console.log('here - orm + 3')
+        return _sync(global.DomainPattern);
+    })
+    .then(function() {
         return _sync(global.SearchEmail);
+        console.log('here - orm + 4');
     }).catch(function(err) {
         console.log(err)
     })
