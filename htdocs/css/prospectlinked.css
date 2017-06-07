@@ -1,0 +1,36 @@
+h1 {
+ color: #c00;
+}
+
+.navbar-header > img {
+  position: relative;
+  top: 4px;
+  width: 42px;
+  height: 42px;
+  margin-right: 12px;
+  line-height: 42px;
+  verical-align: middle;
+}
+
+.section {
+  padding-bottom: 10px; 
+  border-bottom: 1px solid #ddd; 
+  color: #07b;
+}
+
+.thread {
+  padding: 5px;
+}
+
+.thread-online:nth-child(odd) {background: #dfd;}
+.thread-online:nth-child(even) {background: #cec;}
+
+.thread-offline:nth-child(odd) {background: #fde;}
+.thread-offline:nth-child(even) {background: #ecd;}
+
+.separator {
+  
+  text-align: center;
+  color: #aee;
+  
+}
