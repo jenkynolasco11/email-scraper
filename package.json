@@ -1,0 +1,21 @@
+{
+  "name": "email-scraper",
+  "version": "1.0.0",
+  "description": "",
+  "main": "start.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://bitbucket.org/bit_jenkynolasco11/email-scraper.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/bit_jenkynolasco11/email-scraper#readme",
+  "dependencies": {
+    "pg": "^6.2.3",
+    "sequelize": "^4.0.0"
+  }
+}
