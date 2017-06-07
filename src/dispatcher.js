@@ -365,19 +365,25 @@ Dispatcher.prototype.progress = Dispatcher__progress;
 // Saves the list of emails                        //
 /////////////////////////////////////////////////////
 function Dispatcher__saveEmails(emails) {
-    for (email in emails) {
-        Email.findOrCreate({
+    // TODO: Bulk email inserting is messing with postgres deadlock. Fix that later...
+    const promises = [];
+    for (email in emails) {	
+        promises.push(Email.findOrCreate({
             where: { email: email },
             defaults: emails[email]
-        }).spread(function(e) {
-            // do something if you want
-        }).catch(function(e) {
-            // TODO: delete the process termination
-            console.log('ERROR!!!!!!\n', e, '\n\n\n')
-            console.log(emails[email])
-            process.exit(0)
-        });
+        }))
     }
+
+    Promise.all(promises)
+    .then(function(e) {
+            // do something if you want
+    }).catch(function(e) {
+            // TODO: delete the process termination
+        console.log('ERROR!!!!!!\n\n', e, '\n\n')
+        //console.log(emails[email])
+//        process.exit(0)
+    });
+//    }
 }
 
 Dispatcher.prototype.saveEmails = Dispatcher__saveEmails;
