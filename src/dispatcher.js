@@ -10,6 +10,8 @@
 // System imports                                  //
 /////////////////////////////////////////////////////
 var fs = require('fs');
+var Promise = require('sequelize').Promise;
+var _ = require('lodash');
 
 /////////////////////////////////////////////////////
 // Project Classes                                 //
@@ -97,6 +99,10 @@ function Dispatcher() {
     tmp = LastEntry.total_bandwidth;
     this._stats.network.total_bandwidth = tmp;
 
+
+    this.emails = [];
+    this.semaphore = false;
+    //this.saveEmails = null;
 }
 
 /////////////////////////////////////////////////////
@@ -209,6 +215,73 @@ function Dispatcher__init(workers, callback) {
         callback(err, self._list.size());
 
     });
+
+    const findOrCreate = function(email){
+	Email.findOrCreate({
+		where : { email : email.email },
+		defaults : email
+	})
+	.then(function(){
+		sum += 1;
+	})
+	.catch(function(e){
+		// surely the problem wasn't because of the email
+		self.emails = [].concat(self.emails, email);
+		sum -= 1;
+	});
+    }
+
+    // Implementing a semaphore for email handling...
+    setInterval(function(){
+    //this.saveEmails = function(){
+	if(self.emails.length){
+		if(!self.semaphore){
+			const sum = 0;
+			//console.log('Emails in queue: ', self.emails.length);
+			self.semaphore = true;
+			
+			// let's insert 1000 emails per iteration
+			var emailsToProcess = self.emails.splice(0,1000);
+
+/*			emailsToProcess.forEach(function(email){
+			        Email.findOrCreate({
+			                where : { email : email.email },
+			                defaults : email
+			        })
+			        .then(function(){
+			                return sum += 1;
+			        })
+			        .catch(function(e){
+			                // surely the problem wasn't because of the email
+			                self.emails = [].concat(self.emails, email);
+			                sum -= 1;
+			        });
+			    }
+*/
+			Promise.each(emailsToProcess, function(email){
+			        const whereClause = {
+			            where : { email : email.email },
+			            defaults : email
+			        };
+			        return Email.findOrCreate(whereClause)    // Implementing a semaphore for email handling...;
+    			})	
+			.then(function(){
+				// let's continue
+				self.semaphore = false;
+				return Promise.resolve();//self.semaphore = false;
+			})
+			.catch(function(e){
+				// Process hangs after 30k~ connections made... Doesn't cut connections after
+				self.emails = [].concat(self.emails, emailsToProcess);
+				console.log('Something is going on...');
+			});
+			console.log('Emails in queue: ', self.emails.length);	
+
+//			this.semaphore = false;
+		}
+	}
+    }, 100);
+    //}
 
 }
 
@@ -359,6 +432,25 @@ function Dispatcher__progress(data, callback) {
 
 Dispatcher.prototype.progress = Dispatcher__progress;
 
+////////////////////////////////////////////////////
+//const promises = [];
+/*function processBatch(){
+	Promise.each(Object.keys(emails), function(email){
+	        const whereClause = {
+        	    where : { email : email },
+	            defaults : emails[email]
+        	};
+	});    .then(function(e) {
+        console.log('\nCount of emails processed: ', len, '\n\n');
+    }).catch(function(e) {
+            // TODO: delete the process termination
+        console.log('ERROR!!!!!!\n\n Count of emails: ', len,'\n\n', e, '\n')
+        //console.log(emails[email])
+//        process.exit(0)
+    });
+
+}
+*/
 /////////////////////////////////////////////////////
 // String Dispatcher::saveEmails(emails)           //
 /////////////////////////////////////////////////////
@@ -366,23 +458,45 @@ Dispatcher.prototype.progress = Dispatcher__progress;
 /////////////////////////////////////////////////////
 function Dispatcher__saveEmails(emails) {
     // TODO: Bulk email inserting is messing with postgres deadlock. Fix that later...
-    const promises = [];
-    for (email in emails) {	
-        promises.push(Email.findOrCreate({
-            where: { email: email },
-            defaults: emails[email]
-        }))
-    }
 
-    Promise.all(promises)
-    .then(function(e) {
-            // do something if you want
+//    console.log(this.crat);
+    const len = Object.keys(emails).length;
+
+    this.emails = [].concat(this.emails, _.map(emails));
+//    if(this.saveEmails) {
+//	console.log('now to save emails');
+//	this.saveEmails();
+//    }
+    console.log('Emails processed: ', len);
+    console.log('Emails in queue: ', this.emails.length);
+	
+//    console.log(this.crat);
+
+//    processBatch();
+
+//    const promises = [];
+/*    for (email in emails) {	
+        promises.push(Email.findOrCreate(whereClause)
+    }*/
+
+    // Sequelize.Promise
+/*    Promise.each(Object.keys(emails), function(email){
+        const whereClause = {
+            where : { email : email },
+            defaults : emails[email]
+        };
+
+	return promises.push(Email.findOrCreate(whereClause))
+    })*/
+//    Promise.all(promises)
+/*    .then(function(e) {
+	console.log('\nCount of emails processed: ', len, '\n\n');
     }).catch(function(e) {
             // TODO: delete the process termination
-        console.log('ERROR!!!!!!\n\n', e, '\n\n')
+        console.log('ERROR!!!!!!\n\n Count of emails: ', len,'\n\n', e, '\n')
         //console.log(emails[email])
 //        process.exit(0)
-    });
+    });*/
 //    }
 }
 

@@ -14,7 +14,15 @@ global.Sequelize = require('sequelize');
 /////////////////////////////////////////////////////
 // Create database object                          //
 /////////////////////////////////////////////////////
-var sequelize = new Sequelize('postgres://postgres:postgres@127.0.0.1:5432/frynet', { logging: false });
+var pool = { max : 10, min : 1, idle : 20, acquire : 10000 };
+var dialectOptions = { connectTimeout : 10000 };
+var options = {
+	dialect : 'postgres',
+	pool : pool,
+	dialectOptions : dialectOptions,
+	logging : false
+};
+var sequelize = new Sequelize('postgres://postgres:postgres@127.0.0.1:5432/frynet', options);
 
 /////////////////////////////////////////////////////
 // Keeps track of the amount of models             //
