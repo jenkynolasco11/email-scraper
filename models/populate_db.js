@@ -78,7 +78,6 @@ var Database = {
 function populate_db(fn) {
 
     Pattern.findById(1).then(function(pattern) {
-        console.log('here - populate')
         if (pattern != null) {
             fn();
             return;

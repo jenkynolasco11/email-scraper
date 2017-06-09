@@ -132,20 +132,16 @@ Search.belongsToMany(Email, { through: SearchEmail, foreignKey: 'search_id' });
 
 _sync(global.Pattern)
     .then(function() {
-        console.log('here - orm + 1')
         return _sync(global.Email);
     })
     .then(function() {
-        console.log('here - orm + 2')
         return _sync(global.Search);
     })
     .then(function() {
-        console.log('here - orm + 3')
         return _sync(global.DomainPattern);
     })
     .then(function() {
         return _sync(global.SearchEmail);
-        console.log('here - orm + 4');
     }).catch(function(err) {
         console.log(err)
     })

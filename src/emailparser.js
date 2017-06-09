@@ -300,7 +300,7 @@ function email_analyze_filters(filter1, filter2, clean_email, words, buf) {
     // console.log(filter1);
     // console.log(filter2);
 
-    fs.appendFile('analytics.txt', ' + ' + clean_email + '\r\n   - ' + JSON.stringify(filter3) + '\r\n', function(err) {});
+    //fs.appendFile('analytics.txt', ' + ' + clean_email + '\r\n   - ' + JSON.stringify(filter3) + '\r\n', function(err) {});
 
     return filter3;
 
