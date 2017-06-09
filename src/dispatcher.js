@@ -243,7 +243,7 @@ function Dispatcher__init(workers, callback) {
                 var promises = [];
                 emailsToProcess.forEach(function(email) {
                     sum += 1;
-                    console.log(email)
+                    //console.log(email)
                     var promise = Email.create(email);
 
                     promise.then(function() {
