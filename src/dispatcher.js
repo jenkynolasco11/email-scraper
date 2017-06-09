@@ -233,8 +233,9 @@ function Dispatcher__init(workers, callback) {
                 function canContinue() {
                     if (!sum) {
                         self.semaphore = false;
-                        //  console.log('=> Emails in queue: ', self.emails.length);
-                        Email.destroy().then().catch();
+                        // TODO: Check if it works the without it
+                        //  Forcing to clear the memory
+                        Email.destroy({ where: {} }).then().catch();
                     }
                 }
 
