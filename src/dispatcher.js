@@ -10,6 +10,10 @@
 // System imports                                  //
 /////////////////////////////////////////////////////
 var fs = require('fs');
+var sq = require('sequelize');
+var _ = require('lodash');
+
+var Promise = sq.Promise;
 
 /////////////////////////////////////////////////////
 // Project Classes                                 //
@@ -97,6 +101,10 @@ function Dispatcher() {
     tmp = LastEntry.total_bandwidth;
     this._stats.network.total_bandwidth = tmp;
 
+
+    this.emails = [];
+    this.semaphore = false;
+    //this.saveEmails = null;
 }
 
 /////////////////////////////////////////////////////
@@ -209,6 +217,104 @@ function Dispatcher__init(workers, callback) {
         callback(err, self._list.size());
 
     });
+
+    const findOrCreate = function(email){
+	Email.findOrCreate({
+		where : { email : email.email },
+		defaults : email
+	})
+	.then(function(){
+		sum += 1;
+	})
+	.catch(function(e){
+		// surely the problem wasn't because of the email
+		self.emails = [].concat(self.emails, email);
+		sum -= 1;
+	});
+    }
+
+    // Implementing a semaphore for email handling...
+    setInterval(function(){
+    //this.saveEmails = function(){
+	if(self.emails.length){
+		if(!self.semaphore){
+			var sum = 0;
+			//console.log('Emails in queue: ', self.emails.length);
+			self.semaphore = true;
+
+			function canContinue(){
+                                if(!sum) {
+                                        self.semaphore = false;
+                                        //  console.log('=> Emails in queue: ', self.emails.length);
+					Email.destroy().then().catch();
+                                }
+                        }
+	
+			// let's insert 1000 emails per iteration
+			var emailsToProcess = self.emails.splice(0,1000);
+			var promises = [];
+			emailsToProcess.forEach(function(email){
+				sum += 1;
+			        // var  promise =  Email.findOrCreate({
+				var promise = Email.create({
+			                where : { email : email.email },
+			                defaults : email
+			        });
+				
+				promise.then(function(){
+					sum -= 1;
+					canContinue()
+					promise = null;
+					//  sq.close();
+				      	return sum;
+			        })
+			        .catch(function(e){
+			                // surely the problem wasn't because of the email
+					//
+					// If this happens, it's because it was already inserted
+					//
+			                // self.emails = [].concat(self.emails, email);
+					sum -= 1;
+					promise = null;
+					canContinue();
+
+			        }).done();
+			});
+			console.log('=> Emails in queue: ', self.emails.length);
+/*
+			Promise.each(emailsToProcess, function(email){
+				var promise = null;
+			        const whereClause = {
+			            where : { email : email.email },
+			            defaults : email
+			        };
+				
+				promise = Email.findOrCreate(whereClause);
+				promises.push(promise);
+				return promise;			
+//			        return Email.findOrCreate(whereClause);    // Implementing a semaphore for email handling...
+    			})	
+			.then(function(){
+				// let's continue
+				promises.forEach(function(p){
+					p = null;
+				})
+
+				return self.semaphore = false;
+			})
+			.catch(function(e){
+				// Process hangs after 30k~ connections made... Doesn't cut connections after
+				//self.emails = [].concat(self.emails, emailsToProcess);
+				self.semaphore = false;
+				console.log('Something is going on...');
+			});
+			console.log('Emails in queue: ', self.emails.length);	
+*/
+//			this.semaphore = false;
+		}
+	}
+    }, 100);
+    //}
 
 }
 
@@ -359,25 +465,72 @@ function Dispatcher__progress(data, callback) {
 
 Dispatcher.prototype.progress = Dispatcher__progress;
 
+////////////////////////////////////////////////////
+//const promises = [];
+/*function processBatch(){
+	Promise.each(Object.keys(emails), function(email){
+	        const whereClause = {
+        	    where : { email : email },
+	            defaults : emails[email]
+        	};
+	});    .then(function(e) {
+        console.log('\nCount of emails processed: ', len, '\n\n');
+    }).catch(function(e) {
+            // TODO: delete the process termination
+        console.log('ERROR!!!!!!\n\n Count of emails: ', len,'\n\n', e, '\n')
+        //console.log(emails[email])
+//        process.exit(0)
+    });
+
+}
+*/
 /////////////////////////////////////////////////////
 // String Dispatcher::saveEmails(emails)           //
 /////////////////////////////////////////////////////
 // Saves the list of emails                        //
 /////////////////////////////////////////////////////
 function Dispatcher__saveEmails(emails) {
-    for (email in emails) {
-        Email.findOrCreate({
-            where: { email: email },
-            defaults: emails[email]
-        }).spread(function(e) {
-            // do something if you want
-        }).catch(function(e) {
+    // TODO: Bulk email inserting is messing with postgres deadlock. Fix that later...
+
+//    console.log(this.crat);
+    const len = Object.keys(emails).length;
+
+    this.emails = [].concat(this.emails, _.map(emails));
+//    if(this.saveEmails) {
+//	console.log('now to save emails');
+//	this.saveEmails();
+//    }
+    console.log('Emails processed: ', len);
+    console.log('Emails in queue: ', this.emails.length);
+	
+//    console.log(this.crat);
+
+//    processBatch();
+
+//    const promises = [];
+/*    for (email in emails) {	
+        promises.push(Email.findOrCreate(whereClause)
+    }*/
+
+    // Sequelize.Promise
+/*    Promise.each(Object.keys(emails), function(email){
+        const whereClause = {
+            where : { email : email },
+            defaults : emails[email]
+        };
+
+	return promises.push(Email.findOrCreate(whereClause))
+    })*/
+//    Promise.all(promises)
+/*    .then(function(e) {
+	console.log('\nCount of emails processed: ', len, '\n\n');
+    }).catch(function(e) {
             // TODO: delete the process termination
-            console.log('ERROR!!!!!!\n', e, '\n\n\n')
-            console.log(emails[email])
-            process.exit(0)
-        });
-    }
+        console.log('ERROR!!!!!!\n\n Count of emails: ', len,'\n\n', e, '\n')
+        //console.log(emails[email])
+//        process.exit(0)
+    });*/
+//    }
 }
 
 Dispatcher.prototype.saveEmails = Dispatcher__saveEmails;
