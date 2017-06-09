@@ -18,8 +18,8 @@ var pool = { max : 10, min : 1, idle : 20, acquire : 10000 };
 var dialectOptions = { connectTimeout : 10000 };
 var options = {
 	dialect : 'postgres',
-	pool : pool,
-	dialectOptions : dialectOptions,
+//	pool : pool,
+//	dialectOptions : dialectOptions,
 	logging : false
 };
 var sequelize = new Sequelize('postgres://postgres:postgres@127.0.0.1:5432/frynet', options);

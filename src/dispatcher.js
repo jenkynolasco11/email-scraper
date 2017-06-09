@@ -10,8 +10,10 @@
 // System imports                                  //
 /////////////////////////////////////////////////////
 var fs = require('fs');
-var Promise = require('sequelize').Promise;
+var sq = require('sequelize');
 var _ = require('lodash');
+
+var Promise = sq.Promise;
 
 /////////////////////////////////////////////////////
 // Project Classes                                 //
@@ -236,47 +238,78 @@ function Dispatcher__init(workers, callback) {
     //this.saveEmails = function(){
 	if(self.emails.length){
 		if(!self.semaphore){
-			const sum = 0;
+			var sum = 0;
 			//console.log('Emails in queue: ', self.emails.length);
 			self.semaphore = true;
-			
+
+			function canContinue(){
+                                if(!sum) {
+                                        self.semaphore = false;
+                                        //  console.log('=> Emails in queue: ', self.emails.length);
+					Email.destroy().then().catch();
+                                }
+                        }
+	
 			// let's insert 1000 emails per iteration
 			var emailsToProcess = self.emails.splice(0,1000);
-
-/*			emailsToProcess.forEach(function(email){
-			        Email.findOrCreate({
+			var promises = [];
+			emailsToProcess.forEach(function(email){
+				sum += 1;
+			        // var  promise =  Email.findOrCreate({
+				var promise = Email.create({
 			                where : { email : email.email },
 			                defaults : email
-			        })
-			        .then(function(){
-			                return sum += 1;
+			        });
+				
+				promise.then(function(){
+					sum -= 1;
+					canContinue()
+					promise = null;
+					//  sq.close();
+				      	return sum;
 			        })
 			        .catch(function(e){
 			                // surely the problem wasn't because of the email
-			                self.emails = [].concat(self.emails, email);
-			                sum -= 1;
-			        });
-			    }
-*/
+					//
+					// If this happens, it's because it was already inserted
+					//
+			                // self.emails = [].concat(self.emails, email);
+					sum -= 1;
+					promise = null;
+					canContinue();
+
+			        }).done();
+			});
+			console.log('=> Emails in queue: ', self.emails.length);
+/*
 			Promise.each(emailsToProcess, function(email){
+				var promise = null;
 			        const whereClause = {
 			            where : { email : email.email },
 			            defaults : email
 			        };
-			        return Email.findOrCreate(whereClause)    // Implementing a semaphore for email handling...;
+				
+				promise = Email.findOrCreate(whereClause);
+				promises.push(promise);
+				return promise;			
+//			        return Email.findOrCreate(whereClause);    // Implementing a semaphore for email handling...
     			})	
 			.then(function(){
 				// let's continue
-				self.semaphore = false;
-				return Promise.resolve();//self.semaphore = false;
+				promises.forEach(function(p){
+					p = null;
+				})
+
+				return self.semaphore = false;
 			})
 			.catch(function(e){
 				// Process hangs after 30k~ connections made... Doesn't cut connections after
-				self.emails = [].concat(self.emails, emailsToProcess);
+				//self.emails = [].concat(self.emails, emailsToProcess);
+				self.semaphore = false;
 				console.log('Something is going on...');
 			});
 			console.log('Emails in queue: ', self.emails.length);	
-
+*/
 //			this.semaphore = false;
 		}
 	}

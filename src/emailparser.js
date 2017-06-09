@@ -520,9 +520,17 @@ function email_slice_and_find(username, words, buf) {
                     var str = bin_to_str(buf, word, size).toLowerCase();
                     // console.log("     * " + bin_to_str(buf, word, size));
                     // console.log("     * " + str);
+			// TODO : see why is it failing in results[str].indexes.push(start_indexes[j]);.... It says there is no push in undefined
                     if (results[str]) {
-                        results[str].matches++;
-                        results[str].indexes.push(start_indexes[j]);
+			// TODO : remove try catch... Check why is throwing an error
+			try{
+                            results[str].matches++;
+                            results[str].indexes.push(start_indexes[j]);
+			} catch(e){
+				console.log('results: ', results, '\n\n');
+				console.log('str: ',str, '\n\n');
+				console.log('results[str]: ', results[str], '\n\n');				
+			}
                     } else {
                         results[str] = { matches: 1, indexes: [start_indexes[j]] };
                     }
