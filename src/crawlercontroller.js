@@ -143,9 +143,10 @@ function CrawlerController__crawl() {
         //
         // Start the worker
         //
-        setTimeout(function() {
-            this.getWorker(i).start();
-        }, 100 * i);
+        setTimeout(function(self, index) {
+	   // console.log(self)
+           self.getWorker(index).start();
+        }, 100 * i, this, i);
 
     }
 

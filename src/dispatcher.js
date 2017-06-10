@@ -235,7 +235,7 @@ function Dispatcher__init(workers, callback) {
                         self.semaphore = false;
                         // TODO: Check if it works the without it
                         //  Forcing to clear the memory
-                        Email.destroy({ where: {} }).then().catch();
+                        //  Email.destroy({ where: {} }).then().catch();
                     }
                 }
 
