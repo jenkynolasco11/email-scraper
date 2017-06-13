@@ -558,6 +558,74 @@ function _parse(filename, callback) {
 
 }
 
+// function _parseStream(stream, callback) {
+
+//     var readStream,
+//         parser,
+//         start_time,
+//         end_time,
+//         time_compare,
+//         bytes;
+
+//     console.log(stream);
+
+//     process.exit(0);
+//     //*
+//     //
+//     // Calculate bytes
+//     //
+//     bytes = fs.statSync(filename).size;
+
+//     //
+//     // Benchmark our time
+//     //
+//     start_time = (new Date()).getTime();
+
+//     //
+//     // Create a read pipe for our file
+//     //
+//     readStream = fs.createReadStream(filename);
+
+//     //
+//     // Create a new WetParser object
+//     //
+//     parser = new WetParser();
+
+//     //
+//     // Whenever there is data
+//     //
+//     readStream.on('data', function(chunk) {
+
+//         //
+//         // Parse chunk
+//         //
+//         parser.parseChunk(chunk);
+
+//     });
+
+//     readStream.on('end', function() {
+
+//         /*var writeStream = fs.createWriteStream("emails2.txt");
+//     		// var emails = parser.getEmails();
+
+//         var emails = parser.getEmails();
+
+//     		for( email in emails ) {
+
+//           console.log("email: " + email);
+//           writeStream.write(email + "\n");
+
+//     		}
+
+
+//             end_time = (new Date()).getTime();
+//             time_compare = end_time - start_time;
+//             callback(parser.getEmails(), time_compare, bytes);
+// */
+//     });
+
+// }
+
 /////////////////////////////////////////////////////
 // Export functions                                //
 /////////////////////////////////////////////////////
@@ -568,6 +636,7 @@ function _parse(filename, callback) {
 /////////////////////////////////////////////////////
 module.exports = {
 
-    parse: _parse
+    parse: _parse,
+    // parseStream: _parseStream,
 
 };

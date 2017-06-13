@@ -102,13 +102,19 @@ function process_emails(emails, time_taken, bytes_processed) {
 // This function will process a file containing    //
 // an uncompressed crawl                           //
 /////////////////////////////////////////////////////
-function process_wet(filename) {
+function process_wet(filename, unzippedStream) {
 
     //
     // Use the WetParser to process the pages in
     // crawl database
     //
     console.log(" [CHILD] Will now process file: " + filename);
+
+    ////////////////////////////////////
+    // WetParser.parseStream(unzippedStream, function(emails, time_compare, bytes) {
+    //     process_emails(emails, time_compare, bytes);
+    // });
+    ////////////////////////////////////
 
     // WetParser.parse(filename, process_page);
     WetParser.parse(filename, function(emails, time_compare, bytes) {
@@ -160,6 +166,20 @@ function process_url(url) {
     //
     filename = path.resolve(__dirname, '../tmp/' + name);
 
+    ////////////////////////////////////
+    // Helper.downloadStream(url, send_progress, function(err, stream) {
+    //     if (err) {
+    //         console.log('Got Error: ' + err);
+    //         return false;
+    //     }
+
+    //     Helper.uncompressStream(stream, filename, process_wet);
+    // });
+
+    // send_ready();
+
+    // return true;
+    ////////////////////////////////////
 
     //
     // Check if the file was already downloaded

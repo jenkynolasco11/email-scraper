@@ -131,7 +131,7 @@ function CrawlerController__crawl() {
     //
     // Local variables
     //
-    var i, len;
+    var i, len, self = this;
 
     //
     // Loop through the amount of workers and start 
@@ -143,9 +143,9 @@ function CrawlerController__crawl() {
         //
         // Start the worker
         //
-        setTimeout(function() {
-            this.getWorker(i).start();
-        }, 100 * i);
+        setTimeout(function(i) {
+            self.getWorker(i).start();
+        }, 200 * i, i);
 
     }
 

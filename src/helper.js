@@ -76,6 +76,7 @@ function _uncompress(infile, outfile, deletein, cb) {
 // ref: commoncrawl.js @ line 144                  //
 //                                                 //
 /////////////////////////////////////////////////////
+
 function _download(url, destination, cb, update) {
 
     //
@@ -201,6 +202,90 @@ function _download(url, destination, cb, update) {
 
 }
 
+// Streamamble download
+function _downloadStream(url, update, cb) {
+
+    var filesize = { downloaded: 0, total: 0 };
+
+    var req = http.get(url, function(res) {
+        var buffer = [];
+
+        res.setEncoding('utf8');
+
+        if (res.headers['content-length']) {
+            filesize.total = res.headers['content-length'];
+        }
+
+        res.on('data', function(chunk) {
+            buffer.push(buffer, chunk);
+            filesize.downloaded += chunk.length;
+            update(filesize);
+        });
+
+        // res.on('end', function() {
+
+        //     //
+        //     // Check if request was aborted
+        //     //
+        //     if (req._aborted) {
+        //         filesize.error = true;
+        //         update(filesize);
+        //         return;
+        //     }
+        //     buffer = Buffer.concat(buffer); //.toString();
+
+        //     var rs = fs.createReadStream(buffer);
+
+        //     cb(null, rs);
+        //     // //
+        //     // // Process the body into a list
+        //     // //
+        //     // if (destination == null) {
+
+        //     //     // 
+        //     //     // Return a text body to the callback
+        //     //     // 
+        //     //     cb(null, body);
+
+        //     // } else {
+
+        //     //     //
+        //     //     // Return callback with destination as
+        //     //     // parameter
+        //     //     //
+        //     //     cb(null, destination);
+
+        //     // }
+
+        // });
+
+        cb(null, res);
+    });
+
+    req.on('error', function(err) {
+        cb(err, null);
+    });
+
+    req.on('socket', function(s) {
+
+        // console.log("Got error: " + e.message);
+        // cb(err, null);
+        s.setTimeout(10000);
+        s.on('timeout', function() {
+
+            req._aborted = true;
+            req.abort();
+
+        });
+
+    });
+}
+
+function _uncompressStream(stream, filename, cb) {
+    var unzip = zlib.createGunzip();
+    var unzipped = stream.pipe(unzip);
+    cb(filename, unzipped);
+}
 /////////////////////////////////////////////////////
 // Export functions                                //
 /////////////////////////////////////////////////////
@@ -213,5 +298,6 @@ module.exports = {
 
     download: _download,
     uncompress: _uncompress,
-
+    downloadStream: _downloadStream,
+    uncompressStream: _uncompressStream,
 };
