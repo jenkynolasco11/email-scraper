@@ -60,7 +60,7 @@ function CrawlerController__startWorkers() {
     //
     // Local variables
     //
-    var i, len;
+    var i, len, self = this;
 
     //
     // Loop through the amount of workers and start 
@@ -72,13 +72,39 @@ function CrawlerController__startWorkers() {
         //
         // Start the worker
         //
-        this.getWorker(i).start();
+	setTimeout(function(i){
+	        this.getWorker(i).start();
+	}, 200 * i, i);
 
     }
 
 }
 
 CrawlerController.prototype.startWorkers = CrawlerController__startWorkers;
+
+
+///////////////////////////////////
+function CrawlerController__workerExit(id, lastfile){
+	console.log('\n\x1b[33m[ Restarting ]\x1b[0m Worker #' + id + '\n');
+	if(lastfile) console.log('\x1b[33m [ File ]\x1b[0m File to handle: ' + lastfile);
+
+	this._workers[id] = null;
+	var worker = new Crawler(id, lastfile);
+	
+	onReadyBind = CrawlerController__onReady.bind(this);
+        onProgressBind = CrawlerController__onProgress.bind(this);
+
+        worker.onReady(onReadyBind);
+        worker.onProgress(onProgressBind);
+        worker.onWorkerDied = this.workerExit.bind(this);
+
+	this._workers[id] = worker;
+	return this.getWorker(id).start();
+}
+
+CrawlerController.prototype.workerExit = CrawlerController__workerExit;
+///////////////////////////////////
+
 /////////////////////////////////////////////////////
 // boolean CrawlerController::createWorkers(       //
 // workers )                                       //
@@ -91,14 +117,14 @@ function CrawlerController__createWorkers(workers) {
     //
     // Local variables
     //
-    var i, worker, onReadyBind;
+    var i, worker, onReadyBind, onProgressBind;
 
     //
     // Create a bind to preserve the CrawlerMaster class
     //
     onReadyBind = CrawlerController__onReady.bind(this);
     onProgressBind = CrawlerController__onProgress.bind(this);
-
+    // onWorkerDiedBind = CrawlerController__workerExit.bind(this);
     // 
     // Create the specified amount of workers
     // 
@@ -115,7 +141,7 @@ function CrawlerController__createWorkers(workers) {
         //
         worker.onReady(onReadyBind);
         worker.onProgress(onProgressBind);
-
+	worker.onWorkerDied = this.workerExit.bind(this);
     }
 
 }

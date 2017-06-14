@@ -10,6 +10,7 @@
 /////////////////////////////////////////////////////
 var fs = require('fs');
 var path = require('path');
+var process = require('process');
 
 /////////////////////////////////////////////////////
 // Project imports                                 //
@@ -24,6 +25,11 @@ var Helper = require('./helper.js');
 /////////////////////////////////////////////////////
 var Process = new Ipc(null, null);
 
+var self = {
+ workerId : process.argv[2],
+ lastfile : process.argv[3] || null
+}
+
 /////////////////////////////////////////////////////
 // void send_ready([emails])                       //
 /////////////////////////////////////////////////////
@@ -37,7 +43,6 @@ function send_ready(emails, time_taken, bytes_processed) {
     // Receiver is crawler.js @ Crawler__start()
     //
     Process.send('ready', (emails) ? { emails: emails, time_taken: time_taken, bytes_processed: bytes_processed } : null, function(retval) {
-
         //  console.log(" [CHILD] Master Process has acknowledged");
 
     });
@@ -85,13 +90,6 @@ function process_page(buf, len) {
 /////////////////////////////////////////////////////
 function process_emails(emails, time_taken, bytes_processed) {
 
-    //
-    // Send out emails to parent
-    //
-    // console.log(Object.keys(emails));
-    // send_ready(emails);
-    // console.log(" Finished parsing in " + (time_taken / 1000) + "s");
-    // send_ready(Object.keys(emails), time_taken, bytes_processed);
     send_ready(emails, time_taken, bytes_processed);
 
 }
@@ -103,16 +101,24 @@ function process_emails(emails, time_taken, bytes_processed) {
 // an uncompressed crawl                           //
 /////////////////////////////////////////////////////
 function process_wet(filename) {
+    // TODO : Check for this function
+    // if(!fs.existsSync(filename)) return send_ready();
 
+    // Process.send('file', filename, function(retval){});
     //
     // Use the WetParser to process the pages in
     // crawl database
     //
-    console.log(" [CHILD] Will now process file: " + filename);
+
+    var regex = /CC-MAIN-2014[0-9]*-[0-9]{5}/;
+    var file = regex.exec(filename)[0];
+    var start = Date.now();
+
+    console.log("\x1b[32m [ CHILD " + self.workerId + " ] Will now process file: " + file, '\x1b[0m');
 
     // WetParser.parse(filename, process_page);
     WetParser.parse(filename, function(emails, time_compare, bytes) {
-
+	
         //
         // TODO: Remove the process termination if error...
         //
@@ -121,18 +127,23 @@ function process_wet(filename) {
                 console.log('error while checking access to the file\n\n', err, '\n\n')
                 process.exit(0)
             }
-            fs.unlink(filename, function(err) {
+            fs.unlink(filename, function(err){
                 if (err) {
                     console.log('error while unlinking the file\n\n', err, '\n\n')
                     process.exit(0)
                 } else {
-                    console.log('File deleted\n')
-                        //process.exit(0)
+		    var elapsed = Date.now() - start;
+		    var time = new Date(elapsed);
+		    var secs = ('0' + time.getSeconds()).slice(-2);
+		    var mins = ('0' + time.getMinutes()).slice(-2);
+		    console.log("\x1b[32m [ CHILD " + self.workerId + " ]\x1b[33m parsing time: " + mins + ":" + secs, '\x1b[0m');
+                    console.log('\x1b[34m [ File ]\x1b[33m  ' + file + ' deleted\n\x1b[0m');
+		    process_emails(emails, time_compare, bytes);
                 }
             })
         });
 
-        process_emails(emails, time_compare, bytes);
+        // process_emails(emails, time_compare, bytes);
     });
 }
 
@@ -142,6 +153,7 @@ function process_wet(filename) {
 // This function will process a url for emails     //
 /////////////////////////////////////////////////////
 function process_url(url) {
+    Process.send('file', url, function(retval){ });
 
     //
     // Local variables
@@ -153,13 +165,15 @@ function process_url(url) {
     // working
     // 
     name = path.basename(url);
-    console.log(" [CHILD] I have received url: " + url);
+    console.log("\x1b[34m [ CHILD " + self.workerId +  " ] I have received url: " + url, '\x1b[0m');
 
     //
     // Download the provided URL
     //
     filename = path.resolve(__dirname, '../tmp/' + name);
 
+    var regex = /CC-MAIN-2014[0-9]*-[0-9]{5}/;
+    var file = regex.exec(filename)[0];
 
     //
     // Check if the file was already downloaded
@@ -167,7 +181,7 @@ function process_url(url) {
     if (fs.existsSync(filename + ".txt")) {
 
         // Notify
-        console.log(" [CHILD] File is cached");
+        console.log("\x1b[33m [ CHILD " + self.workerId + " ] File " + file + " is cached\x1b[0m");
 
         // File exists
         setTimeout(process_wet, 0, filename + ".txt");
@@ -182,21 +196,41 @@ function process_url(url) {
     // then parse
     //
 
+    var start = Date.now();
+
     // TODO: ECONNRESET
     Helper.download(url, filename, function(err, destination) {
-
+	
         //
         // Check for error
         //
         if (err) {
-            console.log('Got Error: ' + err);
+            console.log('\x1b[31mGot Error: ' + err, '\x1b[33m');
             return;
         }
+
+        var elapsed = Date.now() - start;
+        var time = new Date(elapsed);
+        var secs = ('0' + time.getSeconds()).slice(-2);
+        var mins = ('0' + time.getMinutes()).slice(-2);
+
+	console.log("\x1b[33m [ CHILD " + self.workerId + " ]\x1b[0m Downloading time: " + mins + ":" + secs, '\x1b[0m');
 
         //
         // Uncompress gzipped file
         //
-        Helper.uncompress(filename, filename + ".txt", true, process_wet);
+	// Process.send('file', url, function(retval){});
+	start = Date.now();
+        Helper.uncompress(filename, filename + ".txt", true, function(filename){
+	    var elapsed = Date.now() - start;
+	    var time = new Date(elapsed);
+            var secs = ('0' + time.getSeconds()).slice(-2);
+            var mins = ('0' + time.getMinutes()).slice(-2);
+
+            console.log("\x1b[33m [ CHILD " + self.workerId + " ]\x1b[0m Uncompressing time: " + mins + ":" + secs, '\x1b[0m');
+
+	    return process_wet(filename);
+	});
 
     }, send_progress);
 
@@ -211,7 +245,13 @@ Process.on('url', process_url);
 /////////////////////////////////////////////////////
 // Send a ready event to the master                //
 /////////////////////////////////////////////////////
-send_ready();
+
+// console.log('Last File: ', lastFile)
+if(self.lastfile) console.log('\x1b[33m [ NOTICE ] There is a file to handle........ ' + self.lastfile, '\x1b[0m');
+self.lastfile !== null ? process_url(self.lastfile) : send_ready();
+self.lastfile = null;
+//lastFile ? console.log(lastFile) : '';
+// send_ready();
 
 /////////////////////////////////////////////////////
 // PREVENT PROCESS FROM EXITING                    //

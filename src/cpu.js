@@ -116,7 +116,7 @@ function loop() {
     //
     // Continuously queue this function
     //
-    setTimeout(loop, 60 * 60 * 24);
+    setTimeout(loop, 60 * 1000);
 
 }
 

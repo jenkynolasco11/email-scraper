@@ -62,6 +62,11 @@ function _uncompress(infile, outfile, deletein, cb) {
 
     });
 
+    output.on('error', function(){
+        console.log("\x1b[31m [ File ]\x1b[0m Error while uncompressing file: "+ infile +"\n Repeating process...");	
+	return _uncompress(infile, outfile, deletein, cb);
+    });
+
 }
 
 /////////////////////////////////////////////////////
