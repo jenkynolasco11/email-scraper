@@ -21,7 +21,9 @@ var http = require('http');
 // passing the file when download is completed     //
 /////////////////////////////////////////////////////
 function _uncompress(infile, outfile, deletein, cb) {
+    //    console.log('a', infile);
 
+    //    console.log('b', outfile);
     //
     // Local variables
     //
@@ -60,6 +62,15 @@ function _uncompress(infile, outfile, deletein, cb) {
         //
         cb(outfile);
 
+    });
+
+    output.on('error', function() {
+        console.log("\x1b[31m [ File ]\x1b[0m Error while uncompressing file: " + infile + "\n Repeating process...");
+        return _uncompress(infile, outfile, deletein, cb);
+    });
+
+    gunzip.on('error', function() {
+        console.log('this one works...............!!!!!!!!!!!');
     });
 
 }
@@ -182,7 +193,7 @@ function _download(url, destination, cb, update) {
 
 
     }).on('error', function(err) {
-
+        console.log('Something happened while downloading.......', err);
         // console.log("Got error: " + e.message);
         cb(err, null);
 

@@ -26,7 +26,7 @@ var Ipc = require('./ipc.js');
 /////////////////////////////////////////////////////
 // Creates a new local worker with a specified id  //
 /////////////////////////////////////////////////////
-function Crawler(id) {
+function Crawler(id, lastfile) {
 
     //
     // private field: "id"
@@ -53,6 +53,13 @@ function Crawler(id) {
     //
     this._onProgress = null;
 
+
+
+    this.onWorkerDied = null;
+
+    this._addHandlers = null;
+
+    this._lastfile = lastfile || null;
 }
 
 /////////////////////////////////////////////////////
@@ -62,16 +69,19 @@ function Crawler(id) {
 // Process Communication(IPC)                      //
 /////////////////////////////////////////////////////
 function Crawler__start() {
-
-    //
-    // Local variables
-    //
+    console.log('\n[ Starting - ' + this._id + ']\n')
+        //
+        // Local variables
+        //
     var tmp;
+    var args = [this._id];
+
+    if (this._lastfile) args.push(this._lastfile);
 
     // 
     // Spawn master
     //
-    tmp = fork(__dirname + '/ipc_worker.js');
+    tmp = fork(__dirname + '/ipc_worker.js', args);
 
     //
     // Create the IPC class for the new process and
@@ -84,6 +94,17 @@ function Crawler__start() {
     //
     this._ipc = ipc;
 
+
+    this.addHandlers(ipc);
+}
+
+Crawler.prototype.start = Crawler__start;
+
+
+// Emergent Function
+function Crawler__addHandlers(ipc) {
+    var self = this;
+
     //
     // Set up a callback
     //
@@ -92,7 +113,7 @@ function Crawler__start() {
         //
         // Check if we have a callback set up
         //
-        if (this._onReady) {
+        if (self._onReady) {
 
             //
             // Call the onReady handler and
@@ -101,7 +122,7 @@ function Crawler__start() {
             // The handler is typically 
             // crawlercontroller.js @ CrawlerController__onReady
             //
-            this._onReady(this, data);
+            self._onReady(self, data);
 
         }
 
@@ -112,6 +133,11 @@ function Crawler__start() {
 
     });
 
+    ipc.on('file', function(file) {
+        self._lastfile = file;
+        return true;
+    })
+
     //
     // Set up a callback
     //
@@ -120,12 +146,12 @@ function Crawler__start() {
         //
         // Check if we have a callback set up
         //
-        if (this._onProgress) {
+        if (self._onProgress) {
 
             //
             // On Progress
             // 
-            this._onProgress(this, data);
+            self._onProgress(self, data);
 
         }
 
@@ -137,23 +163,22 @@ function Crawler__start() {
     });
 
     ipc.on('error', function(err) {
-        console.log('======================================Error:\n\n');
+        console.log('\n======================================Error:\n\n');
         console.log(ipc)
     })
 
-    ipc.on('exit', function(err) {
-        console.log('======================================Exit:\n\n');
-        console.log(ipc)
-    })
+    function restartIt(msg) {
+        console.log('\x1b[31m\n[ Restarting #' + this._id + ' ]\x1b[33m Trying to ' + msg + '...\n\x1b[0m');
+        console.log('\x1b[33mLast file handled : ' + this._lastfile, '\x1b[0m');
+        return this.onWorkerDied(this._id, this._lastfile);
+    }
 
-    ipc.on('close', function(err) {
-        console.log('======================================Close:\n\n');
-        console.log(ipc)
-    })
+    ipc.on('exit', restartIt.bind(this, 'exit'))
 
+    ipc.on('close', restartIt.bind(this, 'close'))
 }
 
-Crawler.prototype.start = Crawler__start;
+Crawler.prototype.addHandlers = Crawler__addHandlers;
 
 /////////////////////////////////////////////////////
 // Crawler::getId()                                //
@@ -208,15 +233,18 @@ Crawler.prototype.onProgress = Crawler__onProgress;
 // Sends a URL to the worker process               //
 /////////////////////////////////////////////////////
 function Crawler__send(url) {
-
+    var self = this;
     //
     // Send the URL
     //
-    this._ipc.send('url', url, function(retval) {});
+    this._ipc.send('url', url, function(retval) {
+        self._lastfile = url;
+    });
 
 }
 
 Crawler.prototype.send = Crawler__send;
+
 /////////////////////////////////////////////////////
 // Export our class to other parts of the app      //
 /////////////////////////////////////////////////////

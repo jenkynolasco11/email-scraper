@@ -1,2 +1,2 @@
 /* This file is auto-generated */
-module.exports = { "time": "1397609521512.15", "chunk": 453, "emails": 523998, "crawls": 453, "time_per_crawl": 75538, "total_crawl_time": 15669508, "total_bytes_processed": 108647993637, "total_bandwidth": 47310849372 };
+module.exports = { "time": "1397609521512.15", "chunk": 20, "emails": 22861, "crawls": 20, "time_per_crawl": 43302, "total_crawl_time": 428275, "total_bytes_processed": 4871272225, "total_bandwidth": 2105105804 };
