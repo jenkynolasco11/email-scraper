@@ -27,7 +27,8 @@ var Process = new Ipc(null, null);
 
 var self = {
  workerId : process.argv[2],
- lastfile : process.argv[3] || null
+ lastfile : process.argv[3] || null,
+ resetted : (process.argv[3]) ? true : false,
 }
 
 /////////////////////////////////////////////////////
@@ -147,6 +148,21 @@ function process_wet(filename) {
     });
 }
 
+function uncompressFile(filename){
+    // console.log(filename);
+    start = Date.now();
+    Helper.uncompress(filename, filename + '.txt', true, function(filename){
+        var elapsed = Date.now() - start;
+        var time = new Date(elapsed);
+        var secs = ('0' + time.getSeconds()).slice(-2);
+        var mins = ('0' + time.getMinutes()).slice(-2);
+
+        console.log("\x1b[33m [ CHILD " + self.workerId + " ]\x1b[0m Uncompressing time: " + mins + ":" + secs, '\x1b[0m');
+
+         return process_wet(filename);
+    });
+}
+
 /////////////////////////////////////////////////////
 // boolean process_url( url )                      //
 /////////////////////////////////////////////////////
@@ -171,14 +187,25 @@ function process_url(url) {
     // Download the provided URL
     //
     filename = path.resolve(__dirname, '../tmp/' + name);
+    filename = filename.replace(/.txt$/, '');
+//    console.log(filename)
 
     var regex = /CC-MAIN-2014[0-9]*-[0-9]{5}/;
     var file = regex.exec(filename)[0];
 
+    // Check if zip file is available
+
+    if(fs.existsSync(filename) && !self.resetted){
+	console.log("\x1b[33m [ CHILD " + self.workerId + " ] File " + file + " to be unzipped\x1b[0m");
+	setTimeout(uncompressFile, 0, filename);
+
+	return true;
+    }
+
     //
     // Check if the file was already downloaded
     //
-    if (fs.existsSync(filename + ".txt")) {
+    if (fs.existsSync(filename + ".txt") && !self.resetted) {
 
         // Notify
         console.log("\x1b[33m [ CHILD " + self.workerId + " ] File " + file + " is cached\x1b[0m");
@@ -191,6 +218,7 @@ function process_url(url) {
 
     }
 
+    self.resetted = false;
     //
     // At this point, the file does not exist. Download
     // then parse
@@ -200,12 +228,13 @@ function process_url(url) {
 
     // TODO: ECONNRESET
     Helper.download(url, filename, function(err, destination) {
-	
+	// console.log(filename)
+
         //
         // Check for error
         //
         if (err) {
-            console.log('\x1b[31mGot Error: ' + err, '\x1b[33m');
+            console.log('\x1b[31mGot Error: ' + err, '\x1b[0m');
             return;
         }
 
@@ -215,11 +244,13 @@ function process_url(url) {
         var mins = ('0' + time.getMinutes()).slice(-2);
 
 	console.log("\x1b[33m [ CHILD " + self.workerId + " ]\x1b[0m Downloading time: " + mins + ":" + secs, '\x1b[0m');
-
+	
+	return setTimeout(uncompressFile, 0, filename);
         //
         // Uncompress gzipped file
         //
 	// Process.send('file', url, function(retval){});
+/*
 	start = Date.now();
         Helper.uncompress(filename, filename + ".txt", true, function(filename){
 	    var elapsed = Date.now() - start;
@@ -231,7 +262,7 @@ function process_url(url) {
 
 	    return process_wet(filename);
 	});
-
+*/
     }, send_progress);
 
     // send_ready();
