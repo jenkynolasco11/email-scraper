@@ -67,6 +67,7 @@ function Ipc(child, context) {
     //
     this.apply();
 
+    // this.stop = false;
 }
 
 /////////////////////////////////////////////////////

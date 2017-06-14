@@ -266,7 +266,7 @@ function Dispatcher__init(workers, callback) {
 
                         }).done();
                 });
-                console.log('<= Emails in queue: ', self.emails.length, '\n\n');
+                console.log('\x1b[31m <= \x1b[0mEmails in queue: ', self.emails.length, '\n');
             }
         }
     }, 100);
@@ -431,8 +431,8 @@ function Dispatcher__saveEmails(emails) {
 
     this.emails = [].concat(this.emails, _.map(emails));
 
-    console.log('Emails processed: ', len);
-    console.log('=> Emails in queue: ', this.emails.length, '\n');
+    console.log('\x1b[32m [ Email ] \x1b[0mProcessed: ', len);
+    console.log(' \x1b[32m=>\x1b[0m Emails in queue: ', this.emails.length, '\n');
 }
 
 Dispatcher.prototype.saveEmails = Dispatcher__saveEmails;
