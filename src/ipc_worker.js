@@ -101,72 +101,66 @@ function process_emails(emails, time_taken, bytes_processed) {
 // This function will process a file containing    //
 // an uncompressed crawl                           //
 /////////////////////////////////////////////////////
-function process_wet(filename) {
-    // TODO : Check for this function
-    // if(!fs.existsSync(filename)) return send_ready();
+function process_wet(stream) {
 
-    // Process.send('file', filename, function(retval){});
-    //
-    // Use the WetParser to process the pages in
-    // crawl database
-    //
+    // var regex = /CC-MAIN-2014[0-9]*-[0-9]{5}/;
+    // var file = regex.exec(fname)[0];
+    // var start = Date.now();
 
-    var regex = /CC-MAIN-2014[0-9]*-[0-9]{5}/;
-    var file = regex.exec(filename)[0];
-    var start = Date.now();
+    // console.log("\x1b[32m [ CHILD " + self.workerId + " ] Will now process file: " + file, '\x1b[0m');
 
-    console.log("\x1b[32m [ CHILD " + self.workerId + " ] Will now process file: " + file, '\x1b[0m');
-
-    ////////////////////////////////////
-    // WetParser.parseStream(unzippedStream, function(emails, time_compare, bytes) {
-    //     process_emails(emails, time_compare, bytes);
-    // });
-    ////////////////////////////////////
-
-    // WetParser.parse(filename, process_page);
-    WetParser.parse(filename, function(emails, time_compare, bytes) {
-
-        //
-        // TODO: Remove the process termination if error...
-        //
-        fs.access(filename, function(err) {
-            if (err) {
-                console.log('error while checking access to the file\n\n', err, '\n\n')
-                process.exit(0)
-            }
-            fs.unlink(filename, function(err) {
-                if (err) {
-                    console.log('error while unlinking the file\n\n', err, '\n\n')
-                    process.exit(0)
-                } else {
-                    var elapsed = Date.now() - start;
-                    var time = new Date(elapsed);
-                    var secs = ('0' + time.getSeconds()).slice(-2);
-                    var mins = ('0' + time.getMinutes()).slice(-2);
-                    console.log("\x1b[32m [ CHILD " + self.workerId + " ]\x1b[33m parsing time: " + mins + ":" + secs, '\x1b[0m');
-                    console.log('\x1b[34m [ File ]\x1b[33m  ' + file + ' deleted\n\x1b[0m');
-                    process_emails(emails, time_compare, bytes);
-                }
-            })
-        });
-
-        // process_emails(emails, time_compare, bytes);
+    //////////////////////////////////
+    WetParser.parseStream(stream, function(emails, time_compare, bytes) {
+        process_emails(emails, time_compare, bytes);
     });
+    //////////////////////////////////
+    /*
+        // WetParser.parse(filename, process_page);
+        // WetParser.parse(filename, function(emails, time_compare, bytes) {
+
+        //     //
+        //     // TODO: Remove the process termination if error...
+        //     //
+        //     fs.access(filename, function(err) {
+        //         if (err) {
+        //             console.log('error while checking access to the file\n\n', err, '\n\n')
+        //             process.exit(0)
+        //         }
+        //         fs.unlink(filename, function(err) {
+        //             if (err) {
+        //                 console.log('error while unlinking the file\n\n', err, '\n\n')
+        //                 process.exit(0)
+        //             } else {
+        //                 var elapsed = Date.now() - start;
+        //                 var time = new Date(elapsed);
+        //                 var secs = ('0' + time.getSeconds()).slice(-2);
+        //                 var mins = ('0' + time.getMinutes()).slice(-2);
+        //                 console.log("\x1b[32m [ CHILD " + self.workerId + " ]\x1b[33m parsing time: " + mins + ":" + secs, '\x1b[0m');
+        //                 console.log('\x1b[34m [ File ]\x1b[33m  ' + file + ' deleted\n\x1b[0m');
+        //                 process_emails(emails, time_compare, bytes);
+        //             }
+        //         })
+        //     });
+
+        //     // process_emails(emails, time_compare, bytes);
+        // });
+        */
+
 }
 
-function uncompressFile(filename) {
-    start = Date.now();
-    Helper.uncompress(filename, filename + '.txt', true, function(filename) {
-        var elapsed = Date.now() - start;
-        var time = new Date(elapsed);
-        var secs = ('0' + time.getSeconds()).slice(-2);
-        var mins = ('0' + time.getMinutes()).slice(-2);
+// function uncompressFile(filename) {
+//     start = Date.now();
+//     Helper.uncompress(filename, filename + '.txt', true, function(filename) {
+//         var elapsed = Date.now() - start;
+//         var time = new Date(elapsed);
+//         var secs = ('0' + time.getSeconds()).slice(-2);
+//         var mins = ('0' + time.getMinutes()).slice(-2);
 
-        console.log("\x1b[33m [ CHILD " + self.workerId + " ]\x1b[0m Uncompressing time: " + mins + ":" + secs, '\x1b[0m');
+//         console.log("\x1b[33m [ CHILD " + self.workerId + " ]\x1b[0m Uncompressing time: " + mins + ":" + secs, '\x1b[0m');
 
-        return process_wet(filename);
-    });
-}
+//         return process_wet(filename);
+//     });
+// }
 
 /////////////////////////////////////////////////////
 // boolean process_url( url )                      //
@@ -174,7 +168,7 @@ function uncompressFile(filename) {
 // This function will process a url for emails     //
 /////////////////////////////////////////////////////
 function process_url(url) {
-    Process.send('file', url, function(retval) {});
+    // Process.send('file', url, function(retval) {});
 
     //
     // Local variables
@@ -193,66 +187,27 @@ function process_url(url) {
     //
     filename = path.resolve(__dirname, '../tmp/' + name);
     filename = filename.replace(/.txt$/, '');
-    //    console.log(filename)
 
     var regex = /CC-MAIN-2014[0-9]*-[0-9]{5}/;
     var file = regex.exec(filename)[0];
 
-    // Check if zip file is available
+    // Helper.downloadStream(url, send_progress, function(err, stream) {
+    //     if (err) {
+    //         console.log('\x1b[31mGot Error: ' + err, '\x1b[0m');
+    //         return;
+    //     }
+    //     // console.log("\x1b[33m [ CHILD " + self.workerId + " ]\x1b[0m Downloading time: " + mins + ":" + secs, '\x1b[0m');
 
-    if (fs.existsSync(filename) && !self.resetted) {
-        console.log("\x1b[33m [ CHILD " + self.workerId + " ] File " + file + " to be unzipped\x1b[0m");
-        setTimeout(uncompressFile, 0, filename);
-
-        return true;
-    }
-
-    //
-    // Check if the file was already downloaded
-    //
-    if (fs.existsSync(filename + ".txt") && !self.resetted) {
-
-        // Notify
-        console.log("\x1b[33m [ CHILD " + self.workerId + " ] File " + file + " is cached\x1b[0m");
-
-        // File exists
-        setTimeout(process_wet, 0, filename + ".txt");
-
-        // No more business in this function
-        return true;
-
-    }
-
-    self.resetted = false;
-    //
-    // At this point, the file does not exist. Download
-    // then parse
-    //
-
-    var start = Date.now();
-
-    // TODO: ECONNRESET
-    Helper.download(url, filename, function(err, destination) {
-        // console.log(filename)
-
-        //
-        // Check for error
-        //
+    //     Helper.uncompressStream(stream, filename, process_wet);
+    // });
+    Helper.downloadStream(url, send_progress, function(err, stream) {
         if (err) {
             console.log('\x1b[31mGot Error: ' + err, '\x1b[0m');
             return;
         }
 
-        var elapsed = Date.now() - start;
-        var time = new Date(elapsed);
-        var secs = ('0' + time.getSeconds()).slice(-2);
-        var mins = ('0' + time.getMinutes()).slice(-2);
-
-        console.log("\x1b[33m [ CHILD " + self.workerId + " ]\x1b[0m Downloading time: " + mins + ":" + secs, '\x1b[0m');
-
-        return setTimeout(uncompressFile, 0, filename);
-
-    }, send_progress);
+        return process_wet(stream);
+    })
 
     return true;
 

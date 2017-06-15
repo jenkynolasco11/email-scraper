@@ -220,20 +220,52 @@ function _downloadStream(url, update, cb) {
 
     var req = http.get(url, function(res) {
         var buffer = [];
+        var unzipped = '';
+        var zip = zlib.createGunzip()
 
-        res.setEncoding('utf8');
+        // res.setEncoding('utf8');
 
         if (res.headers['content-length']) {
             filesize.total = res.headers['content-length'];
         }
 
-        res.on('data', function(chunk) {
-            buffer.push(buffer, chunk);
-            filesize.downloaded += chunk.length;
-            update(filesize);
+        // res.on('data', function(chunk) {
+        //     // console.log('res data => filesize: ' + filesize.downloaded);
+        //     // buffer = [].concat(buffer, chunk);
+        //     filesize.downloaded += chunk.length;
+
+        //     // zlib.inflate(chunk, function(err, data){
+        //     //     if(err) throw err;
+        //     //     buffer = [].concat(buffer, data);
+        //     // });
+        //     // zip.write(chunk);
+        //     update(filesize);
+        // });
+
+        // res.on('end', function() {
+        //     console.log('res end---')
+        //         // buffer = Buffer.concat(buffer);
+        //         // cb(buffer);
+        // });
+
+        zip.on('data', function(chunk) {
+            // if ((filesize.downloaded % 400000) < 500) console.log('Zip data, Downloaded: ', filesize.downloaded);
+            // buffer = [].concat(buffer, chunk);
         });
 
-        cb(null, res);
+        // zip.on('end', function() {
+        //     console.log('zip end')
+        //     buffer = Buffer.concat(buffer);
+        //     cb(buffer);
+        // });
+
+        zip.on('error', function(err) {
+            console.log('something happened...');
+            console.log(err);
+            process.exit();
+        });
+
+        cb(null, res.pipe(zip));
     });
 
     req.on('error', function(err) {
