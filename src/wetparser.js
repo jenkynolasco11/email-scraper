@@ -703,7 +703,6 @@ function _parse(filename, callback) {
         callback(parser.getEmails(), time_compare, bytes);
 
     });
-
 }
 
 function _parseStream(stream, cb) {
@@ -713,7 +712,7 @@ function _parseStream(stream, cb) {
     // //
     // // Benchmark our time
     // //
-    var start_time = Date.now();
+    // var start_time = Date.now();
 
     // //
     // // Create a new WetParser object
@@ -729,15 +728,14 @@ function _parseStream(stream, cb) {
     });
 
     stream.on('end', function() {
-        var elapsed = Date.now() - start_time;
-        var time = new Date(elapsed);
-        var secs = ('0' + time.getSeconds()).slice(-2);
-        var mins = ('0' + time.getMinutes()).slice(-2);
+        // var elapsed = Date.now() - start_time;
+        // var time = new Date(elapsed);
+        // var secs = ('0' + time.getSeconds()).slice(-2);
+        // var mins = ('0' + time.getMinutes()).slice(-2);
 
-        console.log('It took ' + mins + ":" + secs + ' mins');
+        // console.log('It took ' + mins + ":" + secs + ' mins');
         cb(parser.getEmails(), elapsed, bytes);
     });
-
 }
 
 /////////////////////////////////////////////////////
@@ -749,8 +747,6 @@ function _parseStream(stream, cb) {
 //                                                 //
 /////////////////////////////////////////////////////
 module.exports = {
-
     parse: _parse,
     parseStream: _parseStream,
-
 };

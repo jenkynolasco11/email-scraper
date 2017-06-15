@@ -136,7 +136,7 @@ function Crawler__addHandlers(ipc) {
     ipc.on('file', function(file) {
         self._lastfile = file;
         return true;
-    })
+    });
 
     //
     // Set up a callback
@@ -167,15 +167,15 @@ function Crawler__addHandlers(ipc) {
         console.log(ipc)
     })
 
-    // function restartIt(msg) {
-    //     console.log('\x1b[31m\n[ Restarting #' + this._id + ' ]\x1b[33m Trying to ' + msg + '...\n\x1b[0m');
-    //     console.log('\x1b[33mLast file handled : ' + this._lastfile, '\x1b[0m');
-    //     return this.onWorkerDied(this._id, this._lastfile);
-    // }
+    function restartIt(msg) {
+        console.log('\x1b[31m\n[ Restarting #' + this._id + ' ]\x1b[33m Trying to ' + msg + '...\n\x1b[0m');
+        console.log('\x1b[33mLast URL handled\x1b[35m : ' + this._lastfile, '\x1b[0m');
+        return this.onWorkerDied(this._id, this._lastfile);
+    }
 
-    // ipc.on('exit', restartIt.bind(this, 'exit'))
+    ipc.on('exit', restartIt.bind(this, 'exit'))
 
-    // ipc.on('close', restartIt.bind(this, 'close'))
+    ipc.on('close', restartIt.bind(this, 'close'))
 }
 
 Crawler.prototype.addHandlers = Crawler__addHandlers;
