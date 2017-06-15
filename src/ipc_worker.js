@@ -101,16 +101,16 @@ function process_emails(emails, time_taken, bytes_processed) {
 // This function will process a file containing    //
 // an uncompressed crawl                           //
 /////////////////////////////////////////////////////
-function process_wet(stream) {
+function process_wet(stream, file) {
     var start = Date.now();
-
+    console.log("\x1b[33m [ CHILD " + self.workerId + " ]\x1b[0m Start parsing file " + file,' \x1b[0m');
     //////////////////////////////////
-    WetParser.parseStream(stream, function(emails, time_compare, bytes) {
+    WetParser.parseStream(stream, file, self.workerId, function(emails, time_compare, bytes) {
         var elapsed = Date.now() - start;
         var time = new Date(elapsed);
         var secs = ('0' + time.getSeconds()).slice(-2);
         var mins = ('0' + time.getMinutes()).slice(-2);
-        console.log("\x1b[33m [ CHILD " + self.workerId + " ]\x1b[0m Stream parsed. Time taken: " + mins + ":" + secs, '\x1b[0m');
+        console.log("\x1b[35m [ CHILD " + self.workerId + " ]\x1b[0m Stream parsed. Time taken: " + mins + ":" + secs, '\x1b[0m');
         process_emails(emails, time_compare, bytes);
     });
 }
@@ -151,7 +151,7 @@ function process_url(url) {
             console.log('\x1b[31mGot Error: ' + err, '\x1b[0m');
             return;
         }
-        return process_wet(stream);
+        return process_wet(stream, file);
     });
 
     return true;

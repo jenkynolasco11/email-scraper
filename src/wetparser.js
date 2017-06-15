@@ -705,14 +705,14 @@ function _parse(filename, callback) {
     });
 }
 
-function _parseStream(stream, cb) {
-    console.log('Started parsing...');
+function _parseStream(stream, file, id, cb) {
+    // console.log('Started parsing...');
 
     var bytes = 0;
     // //
     // // Benchmark our time
     // //
-    // var start_time = Date.now();
+    var start_time = Date.now();
 
     // //
     // // Create a new WetParser object
@@ -725,18 +725,42 @@ function _parseStream(stream, cb) {
     stream.on('data', function(chunk) {
 //	if((bytes%500000) < 1000) console.log(bytes);
         bytes += chunk.length;
+	// console.log('Bytes parsed: ' + bytes);
         parser.parseChunk(chunk);
+	/// stream.pause();
+	// setTimeout(stream.resume, 100);
     });
 
-    stream.on('end', function() {
-        // var elapsed = Date.now() - start_time;
+    function sendEmails(msg){
+	if(msg) console.log('\x1b[31m [ CHILD - ' + id +  ' ] \x1b[33mNOTICE:\x1b[0mError while dealing with file ' + file);
+        var elapsed = Date.now() - start_time;
         // var time = new Date(elapsed);
         // var secs = ('0' + time.getSeconds()).slice(-2);
         // var mins = ('0' + time.getMinutes()).slice(-2);
 
         // console.log('It took ' + mins + ":" + secs + ' mins');
         cb(parser.getEmails(), elapsed, bytes);
-    });
+
+    }
+
+    stream.on('error', sendEmails);
+
+    stream.on('end', sendEmails);
+//    stream.on('error', function(err){
+	
+//    });
+
+//    stream.on('end', function() {
+//        var elapsed = Date.now() - start_time;
+        // var time = new Date(elapsed);
+        // var secs = ('0' + time.getSeconds()).slice(-2);
+        // var mins = ('0' + time.getMinutes()).slice(-2);
+
+        // console.log('It took ' + mins + ":" + secs + ' mins');
+//        cb(parser.getEmails(), elapsed, bytes);
+//    });
+   
+    
 }
 
 /////////////////////////////////////////////////////

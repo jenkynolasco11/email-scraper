@@ -225,35 +225,39 @@ function _downloadStream(url, update, cb) {
     var req = getDownloadableStream(function(res) {
         var buffer = [];
         var unzipped = '';
-        var zip = zlib.createGunzip()
+        var zip = zlib.createGunzip({flush : zlib.Z_SYNC_FLUSH, chunkSize : 24 * 1024 });
 
         if (res.headers['content-length']) {
             filesize.total = res.headers['content-length'];
         }
 
-        // res.on('data', function(chunk) {
+        res.on('data', function(chunk) {
         //     // console.log('res data => filesize: ' + filesize.downloaded);
         //     // buffer = [].concat(buffer, chunk);
-        //     filesize.downloaded += chunk.length;
+               filesize.downloaded += chunk.length;
 
         //     // zlib.inflate(chunk, function(err, data){
         //     //     if(err) throw err;
         //     //     buffer = [].concat(buffer, data);
         //     // });
-        //     // zip.write(chunk);
-        //     update(filesize);
-        // });
+	
+               // zip.write(chunk);
+		
+               update(filesize);
+        });
 
-        // res.on('end', function() {
+        res.on('end', function() {
         //     console.log('res end---')
         //         // buffer = Buffer.concat(buffer);
         //         // cb(buffer);
-        // });
+		//console.log('end');
+		//res.close();
+        });
 
-        zip.on('data', function(chunk) {
+        // zip.on('data', function(chunk) {
             // if ((filesize.downloaded % 400000) < 500) console.log('Zip data, Downloaded: ', filesize.downloaded);
             // buffer = [].concat(buffer, chunk);
-        });
+        // });
 
         // zip.on('end', function() {
         //     console.log('zip end')
@@ -261,8 +265,12 @@ function _downloadStream(url, update, cb) {
         //     cb(buffer);
         // });
 
-        zip.on('error', function(err) {
-            console.log('Something happened on unzipping...');
+        /*zip.on('error', function(err) {
+	    var regex = /CC-MAIN-[0-9]*-[0-9]{5}/;
+	    var file = regex.exec(url)[0];
+	    console.log('Problem unzipping this file: ' + file);
+            // console.log('Something happened on unzipping...');
+	    console.log(err);
             req = getDownloadableStream(function(res) {
                 cb(null, res.pipe(zip));
             });
@@ -280,8 +288,10 @@ function _downloadStream(url, update, cb) {
 
                 });
             });
-            //process.exit();
-        });
+	    
+	    // TODO : Evaluate if this is the best option
+            //setTimeout(process.exit, 4 * 1000);
+        });*/
 
         cb(null, res.pipe(zip));
     });
