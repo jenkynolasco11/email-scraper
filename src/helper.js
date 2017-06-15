@@ -213,7 +213,7 @@ function _download(url, destination, cb, update) {
 
 }
 
-// Streamamble download
+// Streamable download
 function _downloadStream(url, update, cb) {
 
     var filesize = { downloaded: 0, total: 0 };
@@ -233,43 +233,6 @@ function _downloadStream(url, update, cb) {
             update(filesize);
         });
 
-        // res.on('end', function() {
-
-        //     //
-        //     // Check if request was aborted
-        //     //
-        //     if (req._aborted) {
-        //         filesize.error = true;
-        //         update(filesize);
-        //         return;
-        //     }
-        //     buffer = Buffer.concat(buffer); //.toString();
-
-        //     var rs = fs.createReadStream(buffer);
-
-        //     cb(null, rs);
-        //     // //
-        //     // // Process the body into a list
-        //     // //
-        //     // if (destination == null) {
-
-        //     //     // 
-        //     //     // Return a text body to the callback
-        //     //     // 
-        //     //     cb(null, body);
-
-        //     // } else {
-
-        //     //     //
-        //     //     // Return callback with destination as
-        //     //     // parameter
-        //     //     //
-        //     //     cb(null, destination);
-
-        //     // }
-
-        // });
-
         cb(null, res);
     });
 
@@ -278,9 +241,6 @@ function _downloadStream(url, update, cb) {
     });
 
     req.on('socket', function(s) {
-
-        // console.log("Got error: " + e.message);
-        // cb(err, null);
         s.setTimeout(10000);
         s.on('timeout', function() {
 
@@ -288,7 +248,6 @@ function _downloadStream(url, update, cb) {
             req.abort();
 
         });
-
     });
 }
 
@@ -306,7 +265,6 @@ function _uncompressStream(stream, filename, cb) {
 //                                                 //
 /////////////////////////////////////////////////////
 module.exports = {
-
     download: _download,
     uncompress: _uncompress,
     downloadStream: _downloadStream,

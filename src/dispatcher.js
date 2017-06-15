@@ -509,6 +509,8 @@ function Dispatcher__ready(data, callback) {
 
     };
 
+    // TODO : Stream this part
+
     fp = fs.createWriteStream('./config/dispatchersettings.js');
     fp.write('/* This file is auto-generated */\r\n');
     fp.write('module.exports = ' + JSON.stringify(tmp) + ';');
