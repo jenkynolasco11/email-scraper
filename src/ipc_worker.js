@@ -102,65 +102,18 @@ function process_emails(emails, time_taken, bytes_processed) {
 // an uncompressed crawl                           //
 /////////////////////////////////////////////////////
 function process_wet(stream) {
-
-    // var regex = /CC-MAIN-2014[0-9]*-[0-9]{5}/;
-    // var file = regex.exec(fname)[0];
-    // var start = Date.now();
-
-    // console.log("\x1b[32m [ CHILD " + self.workerId + " ] Will now process file: " + file, '\x1b[0m');
+    var start = Date.now();
 
     //////////////////////////////////
     WetParser.parseStream(stream, function(emails, time_compare, bytes) {
+        var elapsed = Date.now() - start;
+        var time = new Date(elapsed);
+        var secs = ('0' + time.getSeconds()).slice(-2);
+        var mins = ('0' + time.getMinutes()).slice(-2);
+        console.log("\x1b[33m [ CHILD " + self.workerId + " ]\x1b[0m Stream parsed. Time taken: " + mins + ":" + secs, '\x1b[0m');
         process_emails(emails, time_compare, bytes);
     });
-    //////////////////////////////////
-    /*
-        // WetParser.parse(filename, process_page);
-        // WetParser.parse(filename, function(emails, time_compare, bytes) {
-
-        //     //
-        //     // TODO: Remove the process termination if error...
-        //     //
-        //     fs.access(filename, function(err) {
-        //         if (err) {
-        //             console.log('error while checking access to the file\n\n', err, '\n\n')
-        //             process.exit(0)
-        //         }
-        //         fs.unlink(filename, function(err) {
-        //             if (err) {
-        //                 console.log('error while unlinking the file\n\n', err, '\n\n')
-        //                 process.exit(0)
-        //             } else {
-        //                 var elapsed = Date.now() - start;
-        //                 var time = new Date(elapsed);
-        //                 var secs = ('0' + time.getSeconds()).slice(-2);
-        //                 var mins = ('0' + time.getMinutes()).slice(-2);
-        //                 console.log("\x1b[32m [ CHILD " + self.workerId + " ]\x1b[33m parsing time: " + mins + ":" + secs, '\x1b[0m');
-        //                 console.log('\x1b[34m [ File ]\x1b[33m  ' + file + ' deleted\n\x1b[0m');
-        //                 process_emails(emails, time_compare, bytes);
-        //             }
-        //         })
-        //     });
-
-        //     // process_emails(emails, time_compare, bytes);
-        // });
-        */
-
 }
-
-// function uncompressFile(filename) {
-//     start = Date.now();
-//     Helper.uncompress(filename, filename + '.txt', true, function(filename) {
-//         var elapsed = Date.now() - start;
-//         var time = new Date(elapsed);
-//         var secs = ('0' + time.getSeconds()).slice(-2);
-//         var mins = ('0' + time.getMinutes()).slice(-2);
-
-//         console.log("\x1b[33m [ CHILD " + self.workerId + " ]\x1b[0m Uncompressing time: " + mins + ":" + secs, '\x1b[0m');
-
-//         return process_wet(filename);
-//     });
-// }
 
 /////////////////////////////////////////////////////
 // boolean process_url( url )                      //
@@ -168,7 +121,7 @@ function process_wet(stream) {
 // This function will process a url for emails     //
 /////////////////////////////////////////////////////
 function process_url(url) {
-    // Process.send('file', url, function(retval) {});
+    Process.send('file', url, function(retval) {});
 
     //
     // Local variables
@@ -191,26 +144,17 @@ function process_url(url) {
     var regex = /CC-MAIN-2014[0-9]*-[0-9]{5}/;
     var file = regex.exec(filename)[0];
 
-    // Helper.downloadStream(url, send_progress, function(err, stream) {
-    //     if (err) {
-    //         console.log('\x1b[31mGot Error: ' + err, '\x1b[0m');
-    //         return;
-    //     }
-    //     // console.log("\x1b[33m [ CHILD " + self.workerId + " ]\x1b[0m Downloading time: " + mins + ":" + secs, '\x1b[0m');
+    console.log("\x1b[32m [ CHILD " + self.workerId + " ]\x1b[0m Streaming file " + file + "\x1b[0m");
 
-    //     Helper.uncompressStream(stream, filename, process_wet);
-    // });
     Helper.downloadStream(url, send_progress, function(err, stream) {
         if (err) {
             console.log('\x1b[31mGot Error: ' + err, '\x1b[0m');
             return;
         }
-
         return process_wet(stream);
-    })
+    });
 
     return true;
-
 }
 
 Process.on('url', process_url);
@@ -219,7 +163,7 @@ Process.on('url', process_url);
 // Send a ready event to the master                //
 /////////////////////////////////////////////////////
 
-if (self.lastfile) console.log('\x1b[33m [ NOTICE ] There is a file to handle........ ' + self.lastfile, '\x1b[0m');
+if (self.lastfile) console.log('\x1b[33m [ CHILD - ' + self.workerId + ' ] \x1b[33mNOTICE:\x1b[0m There is a url to handle........ ' + self.lastfile);
 self.lastfile !== null ? process_url(self.lastfile) : send_ready();
 self.lastfile = null;
 

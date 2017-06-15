@@ -218,12 +218,14 @@ function _downloadStream(url, update, cb) {
 
     var filesize = { downloaded: 0, total: 0 };
 
-    var req = http.get(url, function(res) {
+    function getDownloadableStream(cb) {
+        return http.get(url, cb)
+    }
+
+    var req = getDownloadableStream(function(res) {
         var buffer = [];
         var unzipped = '';
         var zip = zlib.createGunzip()
-
-        // res.setEncoding('utf8');
 
         if (res.headers['content-length']) {
             filesize.total = res.headers['content-length'];
@@ -260,9 +262,25 @@ function _downloadStream(url, update, cb) {
         // });
 
         zip.on('error', function(err) {
-            console.log('something happened...');
-            console.log(err);
-            process.exit();
+            console.log('Something happened on unzipping...');
+            req = getDownloadableStream(function(res) {
+                cb(null, res.pipe(zip));
+            });
+
+            req.on('error', function(err) {
+                cb(err, null);
+            });
+
+            req.on('socket', function(s) {
+                s.setTimeout(10000);
+                s.on('timeout', function() {
+
+                    req._aborted = true;
+                    req.abort();
+
+                });
+            });
+            //process.exit();
         });
 
         cb(null, res.pipe(zip));

@@ -85,8 +85,8 @@ CrawlerController.prototype.startWorkers = CrawlerController__startWorkers;
 
 ///////////////////////////////////
 function CrawlerController__workerExit(id, lastfile) {
-    console.log('\n\x1b[33m[ Restarting ]\x1b[0m Worker #' + id + '\n');
-    if (lastfile) console.log('\x1b[33m [ File ]\x1b[0m File to handle: ' + lastfile);
+    console.log('\n\x1b[32m[ Restarting ]\x1b[0m Worker #' + id + '\n');
+    if (lastfile) console.log('\x1b[33mNOTICE:\x1b[0m URL to handle: ' + lastfile);
 
     this._workers[id] = null;
     var worker = new Crawler(id, lastfile);
