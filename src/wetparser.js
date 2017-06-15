@@ -707,7 +707,7 @@ function _parse(filename, callback) {
 }
 
 function _parseStream(stream, cb) {
-    // console.log('Started parsing...');
+    console.log('Started parsing...');
 
     var bytes = 0;
     // //
@@ -724,8 +724,9 @@ function _parseStream(stream, cb) {
     // Whenever there is data
     // //
     stream.on('data', function(chunk) {
+//	if((bytes%500000) < 1000) console.log(bytes);
         bytes += chunk.length;
-        parser.parseChunk(chunk)
+        parser.parseChunk(chunk);
     });
 
     stream.on('end', function() {

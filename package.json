@@ -16,7 +16,7 @@
   "homepage": "https://bitbucket.org/bit_jenkynolasco11/email-scraper#readme",
   "dependencies": {
     "lodash": "^4.17.4",
-    "pg": "^6.2.3",
-    "sequelize": "^4.0.0"
+    "pg": "^6.2.4",
+    "sequelize": "^4.1.0"
   }
 }
