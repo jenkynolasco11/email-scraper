@@ -4,4 +4,5 @@ tmp
 config/*
 !config/personalemails.js
 */dispatchersettings.js
+config/dispatchersettings.js
 nodemon.json

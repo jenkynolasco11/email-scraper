@@ -483,154 +483,6 @@ function WetParser__parseChunk(chunk) {
 
 }
 
-// function WetParser__parseChunk(chunk, cb) {
-//     var start_time = (new Date()).getTime();
-//     //
-//     // Local variables
-//     //
-//     var len, buf, i;
-
-//     //
-//     // Initialize
-//     //
-//     len = chunk.length;
-//     buf = this._buffer;
-
-//     //
-//     // Iterate through the chunk bytes.
-//     //
-//     // IMPORTANT: We are dealing with binary
-//     // inside this loop through "val"
-//     //
-//     for (i = 0; i < len; i++) {
-
-//         //
-//         // Get the current byte value
-//         //
-//         val = chunk[i];
-
-//         //
-//         // If we have a "contentlength", we
-//         // are currently parsing a content body
-//         //
-//         if (this._contentlength > 0) {
-
-//             //
-//             // We are parsing CONTENT here
-//             //
-
-//             //
-//             // 64 = '@'
-//             //
-//             if (val == 64) {
-
-//                 //
-//                 // Mark this as a potential email
-//                 //
-//                 this._potentialemail.push(this._buffercursor);
-
-//             }
-
-//             //
-//             // 10 = linefeed (NEW)
-//             // 13 = newline (NEW)
-//             // 32 = ' '(space) (NEW)
-//             //
-//             // else if (val == 32 || val == 10 || val == 13 || val == 32)
-//             else if (!(val >= 65 && val <= 122)) {
-
-//                 //
-//                 // We have a word
-//                 //
-//                 this.addWord(this._startword, this._buffercursor);
-
-//                 //
-//                 // We'll mark the new character as the start
-//                 // of a new word
-//                 //
-//                 this._startword = this._buffercursor + 1;
-
-//             }
-//             //
-//             // Save this byte in our overall chunk
-//             //
-//             buf[this._buffercursor++] = val;
-
-//             //
-//             // Decrement our content length counter,
-//             // effectively describing how many bytes
-//             // are left
-//             //
-//             this._contentlength--;
-
-//             //
-//             // Check if we are done parsing content
-//             //
-//             if (this._contentlength == 0) {
-
-//                 //
-//                 // We are done parsing content
-//                 //
-
-//                 //
-//                 // If there are potential emails
-//                 //
-//                 if (this._potentialemail.length != 0) {
-
-//                     //
-//                     // Parse content for emails
-//                     //
-//                     this.parseContent();
-
-//                 }
-
-//                 //
-//                 // Reset
-//                 //
-//                 this._url = "";
-//                 this._buffercursor = 0;
-//                 this._potentialemail = [];
-//                 this._wordtable = {};
-//             }
-
-//         } else {
-
-//             //
-//             // We are parsing HEADERS here
-//             //
-
-//             if (val == 13) {
-
-//                 //
-//                 // Reset(linefeed)
-//                 //
-
-//             } else if (val == 10) {
-
-//                 //
-//                 // Newline; parse the current line
-//                 //
-//                 this.parseLine();
-
-//             } else {
-
-//                 //
-//                 // Arbitrary byte. Add this to buffer
-//                 //
-//                 buf[this._buffercursor++] = val;
-
-//             }
-
-//         }
-
-//     }
-
-//     var end_time = (new Date()).getTime();
-//     var time_compare = end_time - start_time;
-//     cb(parser.getEmails(), time_compare, len);
-// }
-
-
 WetParser.prototype.parseChunk = WetParser__parseChunk;
 /////////////////////////////////////////////////////
 // void _paser( filename, callback )               //
@@ -684,20 +536,6 @@ function _parse(filename, callback) {
 
     readStream.on('end', function() {
 
-        /*var writeStream = fs.createWriteStream("emails2.txt");
-		// var emails = parser.getEmails();
-		
-    var emails = parser.getEmails();
-        
-		for( email in emails ) {
-			
-      console.log("email: " + email);
-      writeStream.write(email + "\n");
-			
-		}
-		
-		writeStream.end();/**/
-
         end_time = (new Date()).getTime();
         time_compare = end_time - start_time;
         callback(parser.getEmails(), time_compare, bytes);
@@ -706,7 +544,6 @@ function _parse(filename, callback) {
 }
 
 function _parseStream(stream, file, id, cb) {
-    // console.log('Started parsing...');
 
     var bytes = 0;
     // //
@@ -723,22 +560,14 @@ function _parseStream(stream, file, id, cb) {
     // Whenever there is data
     // //
     stream.on('data', function(chunk) {
-//	if((bytes%500000) < 1000) console.log(bytes);
         bytes += chunk.length;
-	// console.log('Bytes parsed: ' + bytes);
         parser.parseChunk(chunk);
-	/// stream.pause();
-	// setTimeout(stream.resume, 100);
     });
 
     function sendEmails(msg){
-	if(msg) console.log('\x1b[31m [ CHILD - ' + id +  ' ] \x1b[33mNOTICE:\x1b[0mError while dealing with file ' + file);
+	if(msg) console.log('\x1b[31m [ CHILD - ' + id +  ' ] \x1b[33mNOTICE:\x1b[0m Error while dealing with file ' + file);
         var elapsed = Date.now() - start_time;
-        // var time = new Date(elapsed);
-        // var secs = ('0' + time.getSeconds()).slice(-2);
-        // var mins = ('0' + time.getMinutes()).slice(-2);
 
-        // console.log('It took ' + mins + ":" + secs + ' mins');
         cb(parser.getEmails(), elapsed, bytes);
 
     }
@@ -746,20 +575,6 @@ function _parseStream(stream, file, id, cb) {
     stream.on('error', sendEmails);
 
     stream.on('end', sendEmails);
-//    stream.on('error', function(err){
-	
-//    });
-
-//    stream.on('end', function() {
-//        var elapsed = Date.now() - start_time;
-        // var time = new Date(elapsed);
-        // var secs = ('0' + time.getSeconds()).slice(-2);
-        // var mins = ('0' + time.getMinutes()).slice(-2);
-
-        // console.log('It took ' + mins + ":" + secs + ' mins');
-//        cb(parser.getEmails(), elapsed, bytes);
-//    });
-   
     
 }
 
