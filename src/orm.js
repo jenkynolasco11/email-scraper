@@ -14,13 +14,13 @@ global.Sequelize = require('sequelize');
 /////////////////////////////////////////////////////
 // Create database object                          //
 /////////////////////////////////////////////////////
-var pool = { max : 10, min : 1, idle : 20, acquire : 10000 };
-var dialectOptions = { connectTimeout : 10000 };
+var pool = { max: 10, min: 1, idle: 20, acquire: 10000 };
+var dialectOptions = { connectTimeout: 10000 };
 var options = {
-	dialect : 'postgres',
-//	pool : pool,
-//	dialectOptions : dialectOptions,
-	logging : false
+    dialect: 'postgres',
+    //	pool : pool,
+    //	dialectOptions : dialectOptions,
+    logging: false
 };
 var sequelize = new Sequelize('postgres://postgres:postgres@127.0.0.1:5432/frynet', options);
 
@@ -124,20 +124,50 @@ global.Email = sequelize.define(
 );
 
 /////////////////////////////////////////////////////
+// Stats object                                    //
+/////////////////////////////////////////////////////
+global.Stats = sequelize.define(
+    'stats',
+    require('../models/stats.js', { freezeTableName: true })
+)
+
+
+/////////////////////////////////////////////////////
+// Common Crawl Month objects                       //
+/////////////////////////////////////////////////////
+global.CCUrl = sequelize.define(
+    'commoncrawl_url',
+    require('../models/commoncrawl_url.js', { freezeTableName: true })
+)
+
+global.CCUrlStat = sequelize.define(
+    'commoncrawl_url_stats',
+    require('../models/commoncrawl_url_stat.js', { freezeTableName: true })
+)
+
+global.MonthStat = sequelize.define(
+    'month_stat',
+    require('../models/month_stats.js', { freezeTableName: true })
+)
+
+/////////////////////////////////////////////////////
+// One-to-many relationship                        //
+/////////////////////////////////////////////////////
+// CCUrl.belongsTo(MonthStat, { foreignKey: 'month_id' });
+MonthStat.hasMany(CCUrl, { foreignKey: 'month_id' });
+
+/////////////////////////////////////////////////////
 // Many-to-many relationships Search vs. Email     //
 /////////////////////////////////////////////////////
 Email.belongsToMany(Search, { through: SearchEmail, foreignKey: 'email_id' });
 Search.belongsToMany(Email, { through: SearchEmail, foreignKey: 'search_id' });
 
+
+// Default Values
+
 /////////////////////////////////////////////////////
 // Sync database schema                            //
 /////////////////////////////////////////////////////
-// _sync(global.DomainPattern);
-// _sync(global.Pattern);
-// _sync(global.Search);
-// _sync(global.Email);
-// _sync(global.SearchEmail);
-
 _sync(global.Pattern)
     .then(function() {
         return _sync(global.Email);
@@ -150,7 +180,28 @@ _sync(global.Pattern)
     })
     .then(function() {
         return _sync(global.SearchEmail);
-    }).catch(function(err) {
+    })
+    .then(function() {
+        return _sync(global.Stats);
+    })
+    .then(function() {
+        return Stats.build({
+            id: 1,
+            url_count: 0,
+            email_count: 0,
+            emails_processed: 0,
+        }).save();
+    })
+    .then(function() {
+        return _sync(global.MonthStat);
+    })
+    .then(function() {
+        return _sync(global.CCUrl);
+    })
+    .then(function() {
+        return _sync(global.CCUrlStat);
+    })
+    .catch(function(err) {
         console.log(err)
     })
 

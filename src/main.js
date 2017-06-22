@@ -101,7 +101,7 @@ function start_master() {
     //
     // Initialize the crawler controller environment
     //
-    time_start = (new Date()).getTime();
+    time_start = (Date.now());
     CrawlerController.init(cpus, _master_ip, function(err, count) {
 
         //
@@ -124,7 +124,7 @@ function start_master() {
         //
         // Calculate time difference
         //
-        time_diff = ((new Date()).getTime() - time_start) / 1000;
+        time_diff = (Date.now() - time_start) / 1000;
 
         //
         // Notify
