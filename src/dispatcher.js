@@ -224,79 +224,79 @@ function Dispatcher__init(workers, callback) {
     // This checks ever 0.1 secs about emails in the queue to send to the DB
     //
 
-    var howMany = 1000;    
+    var howMany = 1000;
 
     this.interval = setInterval(function() {
         //this.saveEmails = function(){
         if (self.emails.length) {
-/*	    self.emails.reduce(function(empty, email){
-		var promise = Email.create(email);
+            /*	    self.emails.reduce(function(empty, email){
+            		var promise = Email.create(email);
 
-                promise.then(function() {
-                    promise = null;
-                    return sum;
-                })
-                .catch(function(e) {
-		   promise = null;
-                }).done();
+                            promise.then(function() {
+                                promise = null;
+                                return sum;
+                            })
+                            .catch(function(e) {
+            		   promise = null;
+                            }).done();
 
-	    }, []);
+            	    }, []);
 
-	    self.emails = [];
-/*/
+            	    self.emails = [];
+            /*/
             if (!self.semaphore) {
                 var sum = 0;
                 //console.log('Emails in queue: ', self.emails.length);
                 self.semaphore = true;
-		var start = Date.now();
-/*
-///////////////////////////////
+                var start = Date.now();
+                /*
+                ///////////////////////////////
 
-                var emailsToProcess = _.take(self.emails, howMany);
-                var promises = [];
-		
-		function nextBulk(retval){
-		    if(retval) { 
-			console.log(retval);
-			process.exit();
-		    }
-		    // Use retval for something else later
+                                var emailsToProcess = _.take(self.emails, howMany);
+                                var promises = [];
+                		
+                		function nextBulk(retval){
+                		    if(retval) { 
+                			console.log(retval);
+                			process.exit();
+                		    }
+                		    // Use retval for something else later
 
-                    self.semaphore = false;
-                    var elapsed = Date.now() - start;
-                    var time = new Date(elapsed);
-                    var secs = ('0' + time.getSeconds()).slice(-2);
-                    var mins = ('0' + time.getMinutes()).slice(-2);
-                    console.log('\x1b[36m [ Email ]\x1b[0m It took ' + mins + ":" + secs + ' mins to insert ' + howMany + ' emails to the DB.');
-		}
+                                    self.semaphore = false;
+                                    var elapsed = Date.now() - start;
+                                    var time = new Date(elapsed);
+                                    var secs = ('0' + time.getSeconds()).slice(-2);
+                                    var mins = ('0' + time.getMinutes()).slice(-2);
+                                    console.log('\x1b[36m [ Email ]\x1b[0m It took ' + mins + ":" + secs + ' mins to insert ' + howMany + ' emails to the DB.');
+                		}
 
-		Email.bulkCreate(emailsToProcess, {ignoreDuplicates : true})
-			.then(nextBulk)
-			.catch(nextBulk);
+                		Email.bulkCreate(emailsToProcess, {ignoreDuplicates : true})
+                			.then(nextBulk)
+                			.catch(nextBulk);
 
-		self.emails = _.slice(self.emails, howMany);
-                console.log('\x1b[31m <= \x1b[0mEmails in queue: ', self.emails.length, '\n');
-///////////////////////////////*/
+                		self.emails = _.slice(self.emails, howMany);
+                                console.log('\x1b[31m <= \x1b[0mEmails in queue: ', self.emails.length, '\n');
+                ///////////////////////////////*/
 
 
                 function canContinue() {
                     if (sum <= 0) {
-			//console.log('it will continue - ', start, ' --------------------------------');
+                        //console.log('it will continue - ', start, ' --------------------------------');
                         self.semaphore = false;
                         // TODO: Check if it works the without it
                         //  Forcing to clear the memory
                         //  Email.destroy({ where: {} }).then().catch();
-		        var elapsed = Date.now() - start;
-		        var time = new Date(elapsed);
-		        var secs = ('0' + time.getSeconds()).slice(-2);
-		        var mins = ('0' + time.getMinutes()).slice(-2);
-			console.log('\x1b[36m [ Email ]\x1b[0m It took ' + mins + ":" + secs + ' mins to insert ' + howMany + ' emails into the DB.');
+                        var elapsed = Date.now() - start;
+                        var time = new Date(elapsed);
+                        var secs = ('0' + time.getSeconds()).slice(-2);
+                        var mins = ('0' + time.getMinutes()).slice(-2);
+                        console.log('\x1b[36m [ Email ]\x1b[0m It took ' + mins + ":" + secs + ' mins to insert ' + howMany + ' emails into the DB.');
                     }
                 }
 
                 // let's insert 1000 emails per iteration
                 // var emailsToProcess = self.emails.splice(0, 1000);
-		var emailsToProcess = _.take(self.emails, howMany);
+                var emailsToProcess = _.take(self.emails, howMany);
                 var promises = [];
 
                 emailsToProcess.forEach(function(email) {
@@ -306,7 +306,7 @@ function Dispatcher__init(workers, callback) {
 
                     promise.then(function() {
                             sum -= 1;
-			    self.emailsInserted += 1;
+                            self.emailsInserted += 1;
                             canContinue();
                             promise = null;
                             //  sq.close();
@@ -324,7 +324,7 @@ function Dispatcher__init(workers, callback) {
 
                         }).done();
                 });
-		self.emails = _.slice(self.emails, howMany);
+                self.emails = _.slice(self.emails, howMany);
                 console.log('\x1b[31m <= \x1b[0mEmails in queue: ', self.emails.length);
                 console.log('\x1b[32m =X \x1b[0mEmails inserted: ', self.emailsInserted, '\n');
 
@@ -411,6 +411,11 @@ function Dispatcher__getURLs(callback) {
         // Process the body into a list
         //
         month_list = CommonCrawl.monthListFromHTML(body);
+
+        //
+        // Reverses the list. Prioritizes the latest one.
+        //
+        month_list.reverse();
 
         //
         // Download months
