@@ -167,7 +167,7 @@ function common_crawl_add_to_list(urls, month, monthId, callback) {
     // Avoid the last item! It's an empty string, cuz of split!
     // for (var i = 0; i < urls.length - 2; i++) {
     // bulkData = [].concat(urls.map(function(url, i) {
-    console.log(CCUrl);
+    // console.log(CCUrl);
     urls.forEach(function(url, i) {
 
         var pattern = /crawl-data\/CC-MAIN-[0-9]{4}-[0-9]{2}\/segments\/([0-9.]+)\/wet\/CC-MAIN-([0-9.]+)-([0-9.]{5})-ip-([0-9-]+).([a-z0-9.-]+).internal.warc.wet.gz/gi;
@@ -182,6 +182,10 @@ function common_crawl_add_to_list(urls, month, monthId, callback) {
             console.log(i);
             process.exit();
         }
+
+	if (!(qty-i-1)){
+	    console.log('it processed everything');
+	}
 
         var time = result[1];
         var date = result[2];
