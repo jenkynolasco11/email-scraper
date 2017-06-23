@@ -19,23 +19,36 @@ function CommonCrawlList(month, time, date, chunks, server, ip) {
     //
     this._list = {
 
-        //
-        // Items on the list as an associative array
-        //
-        items: {},
+        count: 0,
 
-        //
-        // First and last items
-        //
-        first: null,
-        last: null,
+        processed: 0,
 
-        //
-        // Count
-        //
-        count: 0
+        // toProcess: 0,
 
-    }
+        months: {
+
+        },
+    };
+
+    // this._list = {
+
+    //     //
+    //     // Items on the list as an associative array
+    //     //
+    //     items: {},
+
+    //     //
+    //     // First and last items
+    //     //
+    //     first: null,
+    //     last: null,
+
+    //     //
+    //     // Count
+    //     //
+    //     count: 0
+
+    // }
 
 }
 
@@ -115,77 +128,80 @@ function CommonCrawlList(month, time, date, chunks, server, ip) {
 //     // console.log(this._list.items);
 // }
 
-// function CommonCrawlList__add(month, time, date, chunks, server, ip) {
-function CommonCrawlList__add(data) {
+// function CommonCrawlList__add(data) {
+function CommonCrawlList__add(month, time, date, chunks, server, ip, url) {
 
-    //
-    // Local variables
-    //
-    var ref;
+    var list = this._list;
 
-    //
-    // Increment the count
-    //
-    this._list.count++;
-
-    //
-    // Determine if the entry exists
-    //
-    ref = this._list.items[time];
-    if (ref) {
-
-        //
-        // If it exists, just update the chunk
-        //
-        ref.chunks = parseInt(chunks);
-        return;
-
+    // that means that it exists
+    if (!list.months[month]) {
+        list.months[month] = {
+            count: 0,
+            processed: 0,
+            urls: [],
+            done: false,
+        };
+        // list.months[month][time] = [];
     }
 
-    //
-    // It does not exist. Create a new entry
-    //
-    this._list.items[time] = {}
-    ref = this._list.items[time];
+    list.months[month].count += 1;
 
-    //
-    // Set the fields
-    //
-    ref.month = month;
-    ref.time = time;
-    ref.date = date;
-    ref.chunks = chunks;
-    ref.server = server;
-    ref.ip = ip;
+    list.months[month].urls.push({
+        month: month,
+        time: time,
+        date: date,
+        chunks: chunks,
+        server: server,
+        ip: ip,
+        url: url
+            // processed: false,   // Tempting
+    });
 
-    //
-    // Make first item on list if applicable
-    //
-    if (this._list.first == null) {
-
-        //
-        // Make this entry the first entry
-        //
-        this._list.first = ref;
-
-    } else {
-
-        //
-        // Set the next pointer of last entry
-        //
-        this._list.last.next = ref;
-
-    }
-
-    //
-    // Set the last entry
-    //
-    this._list.last = ref;
-
-    // console.log(this._list.items);
+    list.count += 1;
 }
 
 CommonCrawlList.prototype.add = CommonCrawlList__add;
+
+
+// 1 for descending, -1 for ascending
+function CommonCrawlList__getSortedKeys(asc) {
+    var keys = Object.keys(this._list.months);
+    // var newObj = {};
+
+    keys = keys.sort(function(a, b) {
+        if (a < b) return 1 * asc;
+        if (a > b) return -1 * asc;
+        return 0;
+    });
+
+    return keys;
+}
+
+CommonCrawlList.prototype.getSortedKeys = CommonCrawlList__getSortedKeys;
+
+
+
+function CommonCrawlList__asArray(asc) {
+    var arr = [],
+        self = this;
+
+    var keys = this.getSortedKeys(asc);
+
+    arr = keys.map(function(key) {
+        return [key, self._list.months[key]];
+        // return {
+        //     urls: self._list.months[key].urls,
+        //     month: key,
+        //     processed: 0,
+        //     count: self._list.months[key].count
+        // };
+    });
+
+    return arr;
+}
+
+CommonCrawlList.prototype.asArray = CommonCrawlList__asArray;
+
 
 /////////////////////////////////////////////////////
 // int CommonCrawlList::size()                     //

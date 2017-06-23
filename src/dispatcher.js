@@ -36,6 +36,78 @@ var LastEntry = require('../config/dispatchersettings.js');
 // It defines an interface for the Crawler Master  //
 // "local"                                         //
 /////////////////////////////////////////////////////
+// function Dispatcher() {
+
+//     //
+//     // private field: "list"
+//     //
+//     this._list = new CommonCrawlList();
+
+//     //
+//     // private field "stats"
+//     //
+//     this._stats = {
+
+//         network: { download: { downloaded: 0, total: 0 }, total_bandwidth: 0 },
+//         crawls: { avg_per_crawl: 0, total_time: 0, total_bytes_processed: 0 },
+//         urls: { processed: 0, processed_run: 0, total: 0 },
+//         emails: { processed: 0, processed_run: 0, total: 0 },
+//         cpu: { name: '', cores: 0, ram: 0 },
+
+//         workers: {}
+
+//     };
+
+//     //
+//     // private field: "nextUrl"
+//     //
+//     this._nextUrl = { entry: null, chunk: 0 };
+
+//     //
+//     // private field: "_server"
+//     //
+//     this._server = null;
+
+//     //
+//     // Update fields
+//     //
+//     this._stats.cpu.name = Cpu.getName();
+//     this._stats.cpu.cores = Cpu.getCores();
+//     this._stats.cpu.ram = (Cpu.getRAM() / (1024 * 1024 * 1024)).toFixed(2);
+
+//     //
+//     // Modify fields if we're resuming from a previous crawl
+//     //
+//     var tmp;
+
+//     tmp = LastEntry.emails;
+//     this._stats.emails.processed = tmp;
+//     this._stats.emails.processed_run = tmp;
+//     this._stats.emails.total = tmp;
+
+//     tmp = LastEntry.crawls;
+//     this._stats.urls.processed = tmp;
+//     this._stats.urls.processed_run = tmp;
+
+//     tmp = LastEntry.time_per_crawl;
+//     this._stats.crawls.avg_per_crawl = tmp;
+
+//     tmp = LastEntry.total_crawl_time;
+//     this._stats.crawls.total_time = tmp;
+
+//     tmp = LastEntry.total_bytes_processed;
+//     this._stats.crawls.total_bytes_processed = tmp;
+
+//     tmp = LastEntry.total_bandwidth;
+//     this._stats.network.total_bandwidth = tmp;
+
+//     this.listOfUrls = [];
+
+//     this.emails = [];
+//     this.semaphore = false;
+//     this.interval = null;
+//     this.emailsInserted = 0;
+// }
 function Dispatcher() {
 
     //
@@ -102,11 +174,20 @@ function Dispatcher() {
     this._stats.network.total_bandwidth = tmp;
 
 
+    // New variables
+    this.CCStats = null;
+
+    this._nextMonth = null;
+
+    this.listOfMonths = [];
+
     this.emails = [];
     this.semaphore = false;
     this.interval = null;
     this.emailsInserted = 0;
 }
+
+
 
 /////////////////////////////////////////////////////
 // void Dispatcher::init( workers, callback )      //
@@ -376,12 +457,108 @@ Dispatcher.prototype.heartbeatInfo = Dispatcher__heartbeatInfo;
 // directory URLs so that the Workers can go       //
 // through each document and parse for emails      //
 /////////////////////////////////////////////////////
+// function Dispatcher__getURLs(callback) {
+
+//     //
+//     // Local variables
+//     //
+//     var self;
+
+//     //
+//     // Download month crawls
+//     //
+//     self = this;
+//     Helper.download(CommonCrawl.getStartedURL(), null, function(err, body) {
+
+//         //
+//         // Scope-local variables
+//         //
+//         var month_list;
+
+//         //
+//         // Check if there are any errors
+//         //
+//         if (err) {
+
+//             //
+//             // Callback. Nothing else to do
+//             //
+//             callback(err);
+//             return;
+
+//         }
+
+//         //
+//         // Process the body into a list
+//         //
+//         month_list = CommonCrawl.monthListFromHTML(body);
+
+//         //
+//         // Reverses the list. Prioritizes the latest one.
+//         //
+//         month_list.reverse();
+
+//         //
+//         // Download months
+//         //
+//         CommonCrawl.downloadMonths(month_list, self._list, function() {
+
+//             //
+//             // Local scope variables
+//             //
+//             var tmp;
+
+//             //
+//             // We're done. Reset the nextUrl
+//             //
+//             if (self._nextUrl.entry == null) {
+
+//                 //
+//                 // Start of the list(default)
+//                 //
+//                 self._nextUrl.chunk = 0;
+//                 self._nextUrl.entry = self._list.getFirstEntry();
+
+//                 //
+//                 // Did we leave off somewhere?
+//                 //
+//                 if (LastEntry.time != null) {
+
+//                     //
+//                     // We sure did!
+//                     //
+//                     tmp = self._list.getEntryByTime(LastEntry.time);
+
+//                     if (tmp) {
+
+//                         self._nextUrl.chunk = LastEntry.chunk;
+//                         self._nextUrl.entry = tmp;
+
+//                     }
+
+//                 }
+
+//             }
+
+//             //
+//             // Execute the callback
+//             //
+//             callback(null);
+
+//         });
+
+//     });
+
+// }
+
 function Dispatcher__getURLs(callback) {
 
     //
     // Local variables
     //
     var self;
+
+    var start = Date.now();
 
     //
     // Download month crawls
@@ -413,55 +590,30 @@ function Dispatcher__getURLs(callback) {
         month_list = CommonCrawl.monthListFromHTML(body);
 
         //
-        // Reverses the list. Prioritizes the latest one.
-        //
-        month_list.reverse();
-
-        //
         // Download months
         //
-        CommonCrawl.downloadMonths(month_list, self._list, function() {
+        CommonCrawl.downloadMonths(month_list, self._list, function(CCStats) {
 
-            //
-            // Local scope variables
-            //
-            var tmp;
 
-            //
-            // We're done. Reset the nextUrl
-            //
-            if (self._nextUrl.entry == null) {
+            var data = '/* This file is auto-generated */\r\n';
+            data += 'module.exports = ' + JSON.stringify(CCStats) + ';'
 
-                //
-                // Start of the list(default)
-                //
-                self._nextUrl.chunk = 0;
-                self._nextUrl.entry = self._list.getFirstEntry();
+            var ccdb = './config/commoncrawler_db.js';
 
-                //
-                // Did we leave off somewhere?
-                //
-                if (LastEntry.time != null) {
+            fs.writeFile(ccdb, data, { encoding: 'utf8' }, function(err) {
+                if (err) console.log('Couldn\'t write the file');
+            });
 
-                    //
-                    // We sure did!
-                    //
-                    tmp = self._list.getEntryByTime(LastEntry.time);
+            // 1 for descending
+            self.listOfMonths = [].concat(self._list.asArray.bind(self._list)(-1));
 
-                    if (tmp) {
+            // Save status for later
+            self.CCStats = CCStats;
 
-                        self._nextUrl.chunk = LastEntry.chunk;
-                        self._nextUrl.entry = tmp;
+            // Set the next URL to work with
+            self._nextMonth = self.listOfMonths.pop();
 
-                    }
 
-                }
-
-            }
-
-            //
-            // Execute the callback
-            //
             callback(null);
 
         });
@@ -508,6 +660,101 @@ Dispatcher.prototype.saveEmails = Dispatcher__saveEmails;
 /////////////////////////////////////////////////////
 // Signals the dispatcher that ready for next url  //
 /////////////////////////////////////////////////////
+// function Dispatcher__ready(data, callback) {
+
+//     //
+//     // Local variables
+//     //
+//     var emails, time_taken, ref, fp, tmp, entry, url = "";
+
+//     //
+//     // Get emails from the data
+//     //
+//     time_taken = (data) ? data.time_taken : 0;
+//     emails = (data) ? data.emails : null;
+
+//     //
+//     // Get the reference
+//     //
+//     ref = this._nextUrl;
+
+//     //
+//     // Entry
+//     //
+//     entry = ref.entry;
+
+//     //
+//     // Format a URL
+//     //
+//     // url  = COMMONCRAWL_BASE_URL + entry.month + "/segments/" + entry.time;
+//     url = CommonCrawl.getBaseURL() + entry.month + "/segments/" + entry.time;
+//     url += "/wet/CC-MAIN-" + entry.date + "-" + ("00000" + ref.chunk).slice(-5) + "-ip-" + entry.server + "." + entry.ip + ".internal.warc.wet.gz";
+
+//     //
+//     // Handle emails
+//     //
+//     if (emails) {
+
+//         //
+//         // Save and process emails
+//         //
+//         tmp = Object.keys(emails).length;
+//         this._stats.emails.processed += tmp;
+//         this._stats.emails.total += tmp;
+
+//         this.saveEmails(emails);
+
+//     }
+
+//     //
+//     // Save current entry at "dispatchersettings.js"
+//     //
+//     tmp = this._stats.crawls.avg_per_crawl;
+//     this._stats.crawls.avg_per_crawl = (tmp) ? Math.ceil((tmp + time_taken) / 2) : time_taken;
+//     this._stats.crawls.total_time += time_taken;
+
+//     this._stats.crawls.total_bytes_processed += (data) ? data.bytes_processed : 0;
+
+//     tmp = {
+
+//         time: entry.time,
+//         chunk: ref.chunk,
+//         emails: this._stats.emails.processed,
+//         crawls: this._stats.urls.processed,
+//         time_per_crawl: this._stats.crawls.avg_per_crawl,
+//         total_crawl_time: this._stats.crawls.total_time,
+//         total_bytes_processed: this._stats.crawls.total_bytes_processed,
+//         total_bandwidth: this._stats.network.total_bandwidth
+
+//     };
+
+//     fp = fs.createWriteStream('./config/dispatchersettings.js');
+//     fp.write('/* This file is auto-generated */\r\n');
+//     fp.write('module.exports = ' + JSON.stringify(tmp) + ';');
+//     fp.end();
+
+//     //
+//     // Increment everything
+//     //
+//     if (ref.chunk++ > entry.chunks) {
+
+//         ref.entry = entry.next;
+//         ref.chunk = 0;
+
+//     }
+
+//     //
+//     // Increment URLs processed (NEW)
+//     //
+//     this._stats.urls.processed++;
+
+//     //
+//     // Execute callback with the next URL
+//     //
+//     callback(url);
+
+// }
+
 function Dispatcher__ready(data, callback) {
 
     //
@@ -521,22 +768,8 @@ function Dispatcher__ready(data, callback) {
     time_taken = (data) ? data.time_taken : 0;
     emails = (data) ? data.emails : null;
 
-    //
-    // Get the reference
-    //
-    ref = this._nextUrl;
-
-    //
-    // Entry
-    //
-    entry = ref.entry;
-
-    //
-    // Format a URL
-    //
-    // url  = COMMONCRAWL_BASE_URL + entry.month + "/segments/" + entry.time;
-    url = CommonCrawl.getBaseURL() + entry.month + "/segments/" + entry.time;
-    url += "/wet/CC-MAIN-" + entry.date + "-" + ("00000" + ref.chunk).slice(-5) + "-ip-" + entry.server + "." + entry.ip + ".internal.warc.wet.gz";
+    var entry = this._nextMonth[1].urls.pop();
+    var month = this._nextMonth[0];
 
     //
     // Handle emails
@@ -552,7 +785,65 @@ function Dispatcher__ready(data, callback) {
 
         this.saveEmails(emails);
 
+        // Modify entries
+        this.CCStats.processed += 1;
+        this.CCStats.months[month].status = 'halfway';
+
+        //
+        // TODO : check for the last url already parsed. This entry can't be
+        //        modified if it hasn't been processed yet
+        //
+        this.CCStats.months[month].last = entry.url;
     }
+
+    // =====================================================
+    //     CONTINUE HERE!!!!!!!!!!!!!!!
+    // =====================================================
+
+    // CCStats
+
+    // this.listOfMonths = [
+    //  [month, { count: 64700, processed: 0, urls: [Object], done: false }], 
+    //  [object], 
+    //  [object]
+    // ]
+
+    // urls => [{
+    //    month: month,
+    //    time: time,
+    //    date: date,
+    //    chunks: chunks,
+    //    server: server,
+    //    ip: ip,
+    // }, {}, {}
+    //]
+
+    // console.log(this._nextMonth[1].urls.slice(0, 5))
+    // process.exit()
+
+    if (!entry) {
+        if (this.listOfMonths.length) {
+
+            //
+            // TODO : Check if there are new links to download
+            // 
+            this.CCStats.months[month].status = 'complete';
+            this._nextMonth = this.listOfMonths.pop();
+
+            entry = this._nextMonth[1].urls.pop();
+            month = this._nextMonth[0];
+        }
+
+        //
+        // TODO : else, no more URLs to work with. This process has ended.
+        // 
+    }
+
+    //
+    // Format a URL
+    //
+    url += CommonCrawl.getBaseURL() + entry.month + "/segments/" + entry.time;
+    url += "/wet/CC-MAIN-" + entry.date + "-" + ("00000" + entry.chunks).slice(-5) + "-ip-" + entry.server + "." + entry.ip + ".internal.warc.wet.gz";
 
     //
     // Save current entry at "dispatchersettings.js"
@@ -566,7 +857,7 @@ function Dispatcher__ready(data, callback) {
     tmp = {
 
         time: entry.time,
-        chunk: ref.chunk,
+        chunk: entry.chunks,
         emails: this._stats.emails.processed,
         crawls: this._stats.urls.processed,
         time_per_crawl: this._stats.crawls.avg_per_crawl,
@@ -576,22 +867,16 @@ function Dispatcher__ready(data, callback) {
 
     };
 
-    // TODO : Stream this part
-
     fp = fs.createWriteStream('./config/dispatchersettings.js');
     fp.write('/* This file is auto-generated */\r\n');
     fp.write('module.exports = ' + JSON.stringify(tmp) + ';');
     fp.end();
 
-    //
-    // Increment everything
-    //
-    if (ref.chunk++ > entry.chunks) {
-
-        ref.entry = entry.next;
-        ref.chunk = 0;
-
-    }
+    // Save common crawler stats
+    var fd = fs.createWriteStream('./config/commoncrawler_db.js');
+    fd.write('/* This file is auto-generated */\r\n');
+    fd.write('module.exports = ' + JSON.stringify(this.CCStats) + ';');
+    fd.end();
 
     //
     // Increment URLs processed (NEW)
@@ -602,7 +887,6 @@ function Dispatcher__ready(data, callback) {
     // Execute callback with the next URL
     //
     callback(url);
-
 }
 
 Dispatcher.prototype.ready = Dispatcher__ready;
