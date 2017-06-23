@@ -103,7 +103,7 @@ function process_emails(emails, time_taken, bytes_processed) {
 /////////////////////////////////////////////////////
 function process_wet(stream, file) {
     var start = Date.now();
-    console.log("\x1b[33m [ CHILD " + self.workerId + " ]\x1b[0m Start parsing file " + file,' \x1b[0m');
+    console.log("\x1b[33m [ CHILD " + self.workerId + " ]\x1b[0m Start parsing file " + file, ' \x1b[0m');
     //////////////////////////////////
     WetParser.parseStream(stream, file, self.workerId, function(emails, time_compare, bytes) {
         var elapsed = Date.now() - start;
@@ -141,7 +141,7 @@ function process_url(url) {
     filename = path.resolve(__dirname, '../tmp/' + name);
     filename = filename.replace(/.txt$/, '');
 
-    var regex = /CC-MAIN-2014[0-9]*-[0-9]{5}/;
+    var regex = /CC-MAIN-20[0-9]*-[0-9]{5}/;
     var file = regex.exec(filename)[0];
 
     console.log("\x1b[32m [ CHILD " + self.workerId + " ]\x1b[0m Streaming file " + file + "\x1b[0m");
