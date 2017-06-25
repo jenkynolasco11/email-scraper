@@ -296,7 +296,7 @@ function Dispatcher__init(workers, callback) {
         // Callback
         //
         self._stats.urls.total = self._list.size();
-        callback(err, self._list.size());
+        return callback(err, self._list.size());
 
     });
 
