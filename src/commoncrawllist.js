@@ -132,30 +132,66 @@ function CommonCrawlList(month, time, date, chunks, server, ip) {
 function CommonCrawlList__add(month, time, date, chunks, server, ip, url) {
 
     var list = this._list;
+    var ref = null,
+        obj = null;
 
-    // that means that it exists
+    // In case the month doesn't exist, create it
     if (!list.months[month]) {
         list.months[month] = {
             count: 0,
             processed: 0,
-            urls: [],
+            first: null,
+            last: null,
+            urls: {},
             done: false,
         };
         // list.months[month][time] = [];
     }
 
-    list.months[month].count += 1;
+    // we take this month as reference
+    ref = list.months[month];
 
-    list.months[month].urls.push({
+    if (ref.urls[time]) {
+
+        // If it exists, just update the chunk
+        // ref.urls[time].chunks = parseInt(chunks);
+        // console.log(ref.urls[time])
+        // console.log(chunks);
+        return;
+
+    }
+
+    obj = {
         month: month,
         time: time,
         date: date,
-        chunks: chunks,
+        chunks: parseInt(chunks),
         server: server,
         ip: ip,
-        url: url
+        url: url,
+        next: null
             // processed: false,   // Tempting
-    });
+    }
+
+
+
+    if (!ref.first) {
+
+        // If there is no first, set it as first
+        ref.first = obj;
+
+    } else {
+
+        ref.last.next = obj;
+
+    }
+
+    ref.urls[time] = obj;
+
+    // Set new obj as last
+    ref.last = obj;
+
+    list.months[month].count += 1;
 
     list.count += 1;
 }
@@ -188,7 +224,8 @@ function CommonCrawlList__asArray(asc) {
     var keys = this.getSortedKeys(asc);
 
     arr = keys.map(function(key) {
-        return [key, self._list.months[key]];
+        // return [key, self._list.months[key]];
+        return self._list.months[key];
         // return {
         //     urls: self._list.months[key].urls,
         //     month: key,
@@ -243,7 +280,7 @@ CommonCrawlList.prototype.getFirstEntry = CommonCrawlList__getFirstEntry;
 // This method will return the an entry based off  //
 // of a time                                       //
 /////////////////////////////////////////////////////
-function CommonCrawlList__getEntryByTime(time) {
+function CommonCrawlList__getEntryByTime(time, month) {
 
     //
     // Just return the size of the list

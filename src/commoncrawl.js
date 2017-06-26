@@ -180,6 +180,8 @@ function common_crawl_add_to_list(month, urls, CCStats, commonCrawlList) {
         status: 'nonparsed',
         last: null,
     }
+
+    return;
 }
 
 
@@ -208,20 +210,22 @@ function common_crawl_pop_and_download(months, list, callback) {
         // TODO : sort the list of months
         // console.log('Len "-1" counts: ' + len)
         if (!len--) {
-            callback(CCStats);
+            return callback(CCStats);
         }
+
+        return;
     }
 
     function downloadAndProcessIt(month, cb) {
 
         // FIX : I need to implement this when I implement the DB (idea)
-        // if (CCStats.months[month]) {
+        if (CCStats.months[month]) {
 
-        //     // If month exists and hasn't been parsed, don't download it
-        //     if (CCStats.months[month].status === 'nonparsed') {
-        //         return isResolved();
-        //     }
-        // }
+            // If month exists and hasn't been parsed, don't download it
+            if (CCStats.months[month].status === 'complete') {
+                return isResolved();
+            }
+        }
 
         common_crawl_month_download_and_process(month, function(err, stream) {
             var data = [],
@@ -258,17 +262,19 @@ function common_crawl_pop_and_download(months, list, callback) {
                 }
 
                 // console.log('Got all urls for ' + month + '. ' + urls.length + ' in total... Saving them!!!');
-                cb(month, urls, CCStats);
+                return cb(month, urls, CCStats);
                 // isResolved();
             });
         });
+
+        return;
     }
 
 
     function addMonthStatAndURLs(month, urls, CCStats) {
         // console.log('about to add to list ', month)
         common_crawl_add_to_list(month, urls, CCStats, list);
-        isResolved();
+        return isResolved();
 
         // TODO : See how to implement this part later.
         // MonthStat.create({
@@ -317,6 +323,8 @@ function common_crawl_pop_and_download(months, list, callback) {
         // console.log('Entry for ' + month + ' was not found. Creating one!');
         downloadAndProcessIt(month, addMonthStatAndURLs);
     });
+
+    return;
 }
 
 
