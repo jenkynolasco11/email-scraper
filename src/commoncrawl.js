@@ -318,7 +318,7 @@ function common_crawl_pop_and_download(months, list, callback) {
         months: {}
     };
 
-    len = months.length - 1;
+    len = months.length; // - 1;
 
     // checks if all links are already processed
     function isResolved() {
@@ -372,7 +372,8 @@ function common_crawl_pop_and_download(months, list, callback) {
 
                 } else {
 
-                    CCStats.emails += urls.length - 1;
+                    CCStats.emails += urls.length;
+                    list._list.count += urls.length;
 
                 }
 
