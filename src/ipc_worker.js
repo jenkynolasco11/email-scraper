@@ -149,6 +149,7 @@ function process_url(url) {
     Helper.downloadStream(url, send_progress, function(err, stream) {
         if (err) {
             console.log('\x1b[31mGot Error: ' + err, '\x1b[0m');
+            // Set to download next stream. This file has problems.
             return;
         }
         return process_wet(stream, file);

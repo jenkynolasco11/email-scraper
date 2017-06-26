@@ -610,8 +610,16 @@ function Dispatcher__getURLs(callback) {
             // Save status for later
             self.CCStats = CCStats;
 
-            // Set the next URL to work with
+            // Set the next Month to work with
             self._nextMonth = self.listOfMonths.pop();
+
+            // Set the next URL
+            self._nextUrl = self._nextMonth.first;
+
+            // console.log(self._nextMonth);
+            // console.log(self._nextUrl);
+            // // console.log(self.listOfMonths[0]);
+            // process.exit();
 
 
             callback(null);
@@ -760,7 +768,9 @@ function Dispatcher__ready(data, callback) {
     //
     // Local variables
     //
-    var emails, time_taken, ref, fp, tmp, entry, url = "";
+    var emails, time_taken, ref, fp, tmp, entry, url = "",
+        month = null,
+        entry = null;
 
     //
     // Get emails from the data
@@ -768,8 +778,48 @@ function Dispatcher__ready(data, callback) {
     time_taken = (data) ? data.time_taken : 0;
     emails = (data) ? data.emails : null;
 
-    var entry = this._nextMonth[1].urls.pop();
-    var month = this._nextMonth[0];
+    /*
+        list.months[month] = {
+            count: 0,
+            processed: 0,
+            first: null,
+            last: null,
+            urls: {},
+            done: false,
+        }
+
+        obj = {
+            month: month,
+            time: time,
+            date: date,
+            chunks: chunks,
+            server: server,
+            ip: ip,
+            url: url,
+            next: null
+        }
+    */
+
+    if (!this._nextUrl) {
+        if (this.listOfMonths.length) {
+
+            //
+            // TODO : Check if there are new links to download
+            // 
+            this.CCStats.months[this._nextMonth].status = 'complete';
+
+            this._nextMonth = this.listOfMonths.pop();
+
+            this._nextUrl = this._nextMonth.first;
+        }
+
+        //
+        // TODO : else, no more URLs to work with. This process has ended.
+        // 
+    }
+
+    entry = this._nextUrl;
+    month = entry.month;
 
     //
     // Handle emails
@@ -808,36 +858,23 @@ function Dispatcher__ready(data, callback) {
     //  [object]
     // ]
 
-    // urls => [{
-    //    month: month,
-    //    time: time,
-    //    date: date,
-    //    chunks: chunks,
-    //    server: server,
-    //    ip: ip,
-    // }, {}, {}
-    //]
+    // urls : {
+    // time : {
+    //         month: month,
+    //         time: time,
+    //         date: date,
+    //         chunks: chunks,
+    //         server: server,
+    //         ip: ip,
+    //         url: url,
+    //         next: { obj }
+    //     }
+    // }
 
     // console.log(this._nextMonth[1].urls.slice(0, 5))
     // process.exit()
 
-    if (!entry) {
-        if (this.listOfMonths.length) {
 
-            //
-            // TODO : Check if there are new links to download
-            // 
-            this.CCStats.months[month].status = 'complete';
-            this._nextMonth = this.listOfMonths.pop();
-
-            entry = this._nextMonth[1].urls.pop();
-            month = this._nextMonth[0];
-        }
-
-        //
-        // TODO : else, no more URLs to work with. This process has ended.
-        // 
-    }
 
     //
     // Format a URL
@@ -877,6 +914,10 @@ function Dispatcher__ready(data, callback) {
     fd.write('/* This file is auto-generated */\r\n');
     fd.write('module.exports = ' + JSON.stringify(this.CCStats) + ';');
     fd.end();
+
+    entry.chunks -= 1;
+
+    if (entry.chunks < 0) this._nextUrl = entry.next;
 
     //
     // Increment URLs processed (NEW)
