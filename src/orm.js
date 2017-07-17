@@ -62,7 +62,7 @@ function _sync(model) {
                 }
             });
         }
-        return resolve(model.sync({ force: true }));
+        return resolve(model.sync(/*{ force: true }*/));
     });
 }
 

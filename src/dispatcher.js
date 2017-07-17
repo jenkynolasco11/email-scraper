@@ -880,7 +880,11 @@ function Dispatcher__ready(data, callback) {
     // Format a URL
     //
     url += CommonCrawl.getBaseURL() + entry.month + "/segments/" + entry.time;
-    url += "/wet/CC-MAIN-" + entry.date + "-" + ("00000" + entry.chunks).slice(-5) + "-ip-" + entry.server + "." + entry.ip + ".internal.warc.wet.gz";
+    url += "/wet/CC-MAIN-" + entry.date + "-";
+    if(entry.ip) url += ("00000" + entry.chunks).slice(-5) + "-ip-" + entry.server + "." + entry.ip + ".internal.warc.wet.gz"; 
+    else url += entry.server + "-" + ("00000" + entry.chunks).slice(-5) + ".warc.wet.gz";
+//    console.log(url);
+//    process.exit();
 
     //
     // Save current entry at "dispatchersettings.js"

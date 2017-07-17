@@ -149,16 +149,40 @@ function common_crawl_add_to_list(month, urls, CCStats, commonCrawlList) {
 
     // // TODO : fix this in another place
     // urls.splice(urls.length - 1, 1);
-
+    //    console.log(urls)
+//    var x = 0; 
+//    console.log(x)
+//    console.log(urls[urls.length-1]);
     urls.forEach(function(url) {
         var pattern = /crawl-data\/CC-MAIN-[0-9]{4}-[0-9]{2}\/segments\/([0-9.]+)\/wet\/CC-MAIN-([0-9.]+)-([0-9.]{5})-ip-([0-9-]+).([a-z0-9.-]+).internal.warc.wet.gz/gi;
-        var result = pattern.exec(url);
+	//console.log(urls.slice(-10))
+	var result = pattern.exec(url);
+	var time, date, chunks, ip;
 
-        var time = result[1];
-        var date = result[2];
-        var chunks = result[3];
-        var server = result[4];
-        var ip = result[5];
+	if(result){
+            time = result[1];
+            date = result[2];
+            chunks = result[3];
+            server = result[4];
+            ip = result[5];
+	} else {
+	    pattern = /crawl-data\/CC-MAIN-[0-9]{4}-[0-9]{2}\/segments\/([0-9.]+)\/wet\/CC-MAIN-([0-9.]+)-([0-9.]+)-([0-9]{5}).warc.wet.gz/gi;
+//	    result = pattern.exec(url);
+//	    console.log(url);
+//	    console.log(urls[urls.length - 512])
+	    result = pattern.exec(url);
+//	    console.log(result);
+	    time = result[1];
+	    date = result[2];
+	    chunks = result[4];
+	    server = result[3];
+	    ip = '';
+//	    if(time != x) { 
+//		x = time;
+//		console.log(url);
+//	    }
+
+	}
 
         // var data = {
         //     // url: urls[i],
@@ -203,7 +227,7 @@ function common_crawl_pop_and_download(months, list, callback) {
         months: {}
     };
 
-    len = months.length; // - 1;
+    len = months.length - 1;
 
     // checks if all links are already processed
     function isResolved() {
@@ -251,7 +275,9 @@ function common_crawl_pop_and_download(months, list, callback) {
 
                     if (CCStats.months[month].status === 'halfway') {
                         var ind = urls.indexOf(CCStats.months[month].last);
+			console.log('found one at ' + ind);
                         urls = [].concat(urls.slice(0, ind + 1));
+			// console.log(urls.length)
                         // urls = [].concat(urls.slice(ind + 1));
                     }
 
