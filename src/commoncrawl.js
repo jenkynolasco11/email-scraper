@@ -149,7 +149,7 @@ function common_crawl_add_to_list(month, urls, CCStats, commonCrawlList) {
 
     // // TODO : fix this in another place
     // urls.splice(urls.length - 1, 1);
-
+    // var i = urls.length;
     urls.forEach(function(url) {
         var pattern = /crawl-data\/CC-MAIN-[0-9]{4}-[0-9]{2}\/segments\/([0-9.]+)\/wet\/CC-MAIN-([0-9.]+)-([0-9.]{5})-ip-([0-9-]+).([a-z0-9.-]+).internal.warc.wet.gz/gi;
 
@@ -186,6 +186,10 @@ function common_crawl_add_to_list(month, urls, CCStats, commonCrawlList) {
         // };
 
         commonCrawlList.add(month, time, date, chunks, server, ip, url);
+
+        // console.log(commonCrawlList._list);
+        // console.log(commonCrawlList._list.months[month].first);
+        // if (!--i) process.exit()
 
     });
 
@@ -279,7 +283,7 @@ function common_crawl_pop_and_download(months, list, callback) {
 
                 }
 
-                urls = urls.slice(0, 3);
+                urls = urls.slice(0, 3 * 100);
                 // console.log(urls);
 
                 // console.log(urls.length)

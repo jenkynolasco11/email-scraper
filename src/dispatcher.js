@@ -807,10 +807,10 @@ function Dispatcher__ready(data, callback) {
         //
         // TODO: Check for next month on CommonCrawl (if exists)
         //
-        console.log(this.CCStats.months);
-        console.log(this._nextMonth);
+        // console.log("Months list: \n", this.CCStats);
+        // console.log("Month that was worked: \n", this._nextMonth);
 
-        this.CCStats.months[this._nextMonth].status = 'complete';
+        this.CCStats.months[this._nextMonth.month].status = 'complete';
 
         if (this.listOfMonths.length) {
 
@@ -935,8 +935,8 @@ function Dispatcher__ready(data, callback) {
 
     entry.chunks -= 1;
 
-    // if (entry.chunks >= 0) this._nextUrl = entry.next;
-    this._nextUrl = entry.next;
+    if (entry.chunks < 0) this._nextUrl = entry.next;
+    // this._nextUrl = entry.next;
 
     //
     // Increment URLs processed (NEW)
