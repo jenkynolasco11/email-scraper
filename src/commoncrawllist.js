@@ -140,6 +140,7 @@ function CommonCrawlList__add(month, time, date, chunks, server, ip, url) {
     // In case the month doesn't exist, create it
     if (!list.months[month]) {
         list.months[month] = {
+            month: month,
             count: 0,
             processed: 0,
             first: null,
@@ -167,7 +168,8 @@ function CommonCrawlList__add(month, time, date, chunks, server, ip, url) {
         month: month,
         time: time,
         date: date,
-        chunks: parseInt(chunks),
+        // chunks: parseInt(chunks),
+        chunks: 5,
         server: server,
         ip: ip,
         url: url,
@@ -190,7 +192,7 @@ function CommonCrawlList__add(month, time, date, chunks, server, ip, url) {
 
     ref.urls[time] = obj;
 
-    list.months[month].count += 1;
+    list.months[month].count += (+chunks);
 
     // Set new obj as last
     ref.last = obj;

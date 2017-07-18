@@ -62,7 +62,7 @@ function _sync(model) {
                 }
             });
         }
-        return resolve(model.sync(/*{ force: true }*/));
+        return resolve(model.sync( /*{ force: true }*/ ));
     });
 }
 
@@ -126,35 +126,35 @@ global.Email = sequelize.define(
 /////////////////////////////////////////////////////
 // Stats object                                    //
 /////////////////////////////////////////////////////
-global.Stats = sequelize.define(
-    'stats',
-    require('../models/stats.js', { freezeTableName: true })
-)
+// global.Stats = sequelize.define(
+//     'stats',
+//     require('../models/stats.js', { freezeTableName: true })
+// )
 
 
 /////////////////////////////////////////////////////
 // Common Crawl Month objects                       //
 /////////////////////////////////////////////////////
-global.CCUrl = sequelize.define(
-    'commoncrawl_url',
-    require('../models/commoncrawl_url.js', { freezeTableName: true })
-)
+// global.CCUrl = sequelize.define(
+//     'commoncrawl_url',
+//     require('../models/commoncrawl_url.js', { freezeTableName: true })
+// )
 
-global.CCUrlStat = sequelize.define(
-    'commoncrawl_url_stats',
-    require('../models/commoncrawl_url_stat.js', { freezeTableName: true })
-)
+// global.CCUrlStat = sequelize.define(
+//     'commoncrawl_url_stats',
+//     require('../models/commoncrawl_url_stat.js', { freezeTableName: true })
+// )
 
-global.MonthStat = sequelize.define(
-    'month_stat',
-    require('../models/month_stats.js', { freezeTableName: true })
-)
+// global.MonthStat = sequelize.define(
+//     'month_stat',
+//     require('../models/month_stats.js', { freezeTableName: true })
+// )
 
 /////////////////////////////////////////////////////
 // One-to-many relationship                        //
 /////////////////////////////////////////////////////
 // CCUrl.belongsTo(MonthStat, { foreignKey: 'month_id' });
-MonthStat.hasMany(CCUrl, { foreignKey: 'month_id' });
+// MonthStat.hasMany(CCUrl, { foreignKey: 'month_id' });
 
 /////////////////////////////////////////////////////
 // Many-to-many relationships Search vs. Email     //
@@ -181,26 +181,26 @@ _sync(global.Pattern)
     .then(function() {
         return _sync(global.SearchEmail);
     })
-    .then(function() {
-        return _sync(global.Stats);
-    })
-    .then(function() {
-        return Stats.build({
-            id: 1,
-            url_count: 0,
-            email_count: 0,
-            emails_processed: 0,
-        }).save();
-    })
-    .then(function() {
-        return _sync(global.MonthStat);
-    })
-    .then(function() {
-        return _sync(global.CCUrl);
-    })
-    .then(function() {
-        return _sync(global.CCUrlStat);
-    })
+    // .then(function() {
+    //     return _sync(global.Stats);
+    // })
+    // .then(function() {
+    //     return Stats.build({
+    //         id: 1,
+    //         url_count: 0,
+    //         email_count: 0,
+    //         emails_processed: 0,
+    //     }).save();
+    // })
+    // .then(function() {
+    //     return _sync(global.MonthStat);
+    // })
+    // .then(function() {
+    //     return _sync(global.CCUrl);
+    // })
+    // .then(function() {
+    //     return _sync(global.CCUrlStat);
+    // })
     .catch(function(err) {
         console.log(err)
     })
