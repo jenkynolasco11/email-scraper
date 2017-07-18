@@ -23,13 +23,17 @@
 // Import main()
 //
 var main = require('./src/main.js');
-
+var fs = require('fs');
 //
 // Run main
 //
-// main.main(process.argv.length, process.argv);
+var fil = './config/commoncrawl_db.js';
 
-main.main2(function(arg) {
+// if(fs.existsSync(fil)) fs.unlinkSync(fil);
+
+main.main(process.argv.length, process.argv);
+
+/*main.main2(function(arg) {
     console.log('it ended. arg is: ', arg);
     process.exit();
-});
+});*/

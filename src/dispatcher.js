@@ -602,9 +602,10 @@ function Dispatcher__getURLs(callback) {
 
             var ccdb = './config/commoncrawler_db.js';
 
-            fs.writeFile(ccdb, data, { encoding: 'utf8' }, function(err) {
-                if (err) console.log('Couldn\'t write the file');
-            });
+            fs.writeFileSync(ccdb, data, { encoding: 'utf8' })
+	    //, function(err) {
+            //    if (err) console.log('Couldn\'t write the file');
+            // });
 
             // 1 for descending
             self.listOfMonths = [].concat(self._list.asArray.bind(self._list)(-1));
