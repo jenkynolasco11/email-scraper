@@ -141,7 +141,9 @@ function process_url(url) {
     filename = path.resolve(__dirname, '../tmp/' + name);
     filename = filename.replace(/.txt$/, '');
 
-    var regex = /CC-MAIN-20[0-9]*-[0-9]{5}/;
+    // var regex = /CC-MAIN-20[0-9]*-[0-9]{5}/;
+    var regex = /CC-MAIN-20[0-9]*-[0-9\-]+/;
+    // console.log(filename);
     var file = regex.exec(filename)[0];
 
     console.log("\x1b[32m [ CHILD " + self.workerId + " ]\x1b[0m Streaming file " + file + "\x1b[0m");

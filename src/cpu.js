@@ -18,25 +18,25 @@ var fs = require('fs');
 
 var machine_info = null;
 
-if(!fs.existsSync('./config/machineinfo.js')) {
+if (!fs.existsSync('./config/machineinfo.js')) {
     // If file doesn't exist
     //if (err) {
-        //   if (!machine_info.id) {
+    //   if (!machine_info.id) {
 
-        // TODO: Write variable thread amount
-        var fp, tmp, id;
-        id = crypto.randomBytes(4).toString('hex');
-        tmp = { "id": id };
-        machine_info = tmp;
-        fp = fs.createWriteStream('./config/machineinfo.js');
-        fp.write('/* This file is auto-generated */\r\n');
-        fp.write('module.exports = ' + JSON.stringify(tmp) + ';');
-        fp.end();
+    // TODO: Write variable thread amount
+    var fp, tmp, id;
+    id = crypto.randomBytes(4).toString('hex');
+    tmp = { "id": id };
+    machine_info = tmp;
+    fp = fs.createWriteStream('./config/machineinfo.js');
+    fp.write('/* This file is auto-generated */\r\n');
+    fp.write('module.exports = ' + JSON.stringify(tmp) + ';');
+    fp.end();
 
     //}
     //}
 } else {
-	machine_info = require('../config/machineinfo.js');
+    machine_info = require('../config/machineinfo.js');
 }
 
 
@@ -116,7 +116,7 @@ function loop() {
     //
     // Continuously queue this function
     //
-    setTimeout(loop, 60 * 1000);
+    if (global.isCrawlerRunning) setTimeout(loop, 60 * 1000);
 
 }
 

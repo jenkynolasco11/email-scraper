@@ -149,40 +149,30 @@ function common_crawl_add_to_list(month, urls, CCStats, commonCrawlList) {
 
     // // TODO : fix this in another place
     // urls.splice(urls.length - 1, 1);
-    //    console.log(urls)
-//    var x = 0; 
-//    console.log(x)
-//    console.log(urls[urls.length-1]);
+
     urls.forEach(function(url) {
         var pattern = /crawl-data\/CC-MAIN-[0-9]{4}-[0-9]{2}\/segments\/([0-9.]+)\/wet\/CC-MAIN-([0-9.]+)-([0-9.]{5})-ip-([0-9-]+).([a-z0-9.-]+).internal.warc.wet.gz/gi;
-	//console.log(urls.slice(-10))
-	var result = pattern.exec(url);
-	var time, date, chunks, ip;
 
-	if(result){
+        var result = pattern.exec(url);
+        var time, date, chunks, ip;
+
+        if (result) {
             time = result[1];
             date = result[2];
             chunks = result[3];
             server = result[4];
             ip = result[5];
-	} else {
-	    pattern = /crawl-data\/CC-MAIN-[0-9]{4}-[0-9]{2}\/segments\/([0-9.]+)\/wet\/CC-MAIN-([0-9.]+)-([0-9.]+)-([0-9]{5}).warc.wet.gz/gi;
-//	    result = pattern.exec(url);
-//	    console.log(url);
-//	    console.log(urls[urls.length - 512])
-	    result = pattern.exec(url);
-//	    console.log(result);
-	    time = result[1];
-	    date = result[2];
-	    chunks = result[4];
-	    server = result[3];
-	    ip = '';
-//	    if(time != x) { 
-//		x = time;
-//		console.log(url);
-//	    }
+        } else {
+            pattern = /crawl-data\/CC-MAIN-[0-9]{4}-[0-9]{2}\/segments\/([0-9.]+)\/wet\/CC-MAIN-([0-9.]+)-([0-9.]+)-([0-9]{5}).warc.wet.gz/gi;
 
-	}
+            result = pattern.exec(url);
+
+            time = result[1];
+            date = result[2];
+            chunks = result[4];
+            server = result[3];
+            ip = '';
+        }
 
         // var data = {
         //     // url: urls[i],
@@ -257,7 +247,7 @@ function common_crawl_pop_and_download(months, list, callback) {
 
             stream.on('data', function(chunk) {
                 data.push(chunk);
-            })
+            });
 
             stream.on('end', function() {
                 urls += Buffer.concat(data).toString();
@@ -275,9 +265,10 @@ function common_crawl_pop_and_download(months, list, callback) {
 
                     if (CCStats.months[month].status === 'halfway') {
                         var ind = urls.indexOf(CCStats.months[month].last);
-			console.log('found one at ' + ind);
+                        console.log('found one at ' + ind);
                         urls = [].concat(urls.slice(0, ind + 1));
-			// console.log(urls.length)
+
+                        // console.log(urls.length)
                         // urls = [].concat(urls.slice(ind + 1));
                     }
 
@@ -287,6 +278,11 @@ function common_crawl_pop_and_download(months, list, callback) {
                     list._list.count += urls.length;
 
                 }
+
+                urls = urls.slice(0, 3);
+                // console.log(urls);
+
+                // console.log(urls.length)
 
                 // console.log('Got all urls for ' + month + '. ' + urls.length + ' in total... Saving them!!!');
                 return cb(month, urls, CCStats);

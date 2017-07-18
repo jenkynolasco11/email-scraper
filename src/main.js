@@ -1,3 +1,4 @@
+global.isCrawlerRunning = true;
 /***************************************************
  * main.js                                         *
  *                                                 *
@@ -87,7 +88,7 @@ function format_error(err) {
 /////////////////////////////////////////////////////
 var _master_ip = null;
 
-function start_master() {
+function start_master(cb) {
     //
     // Local variables
     //
@@ -102,7 +103,7 @@ function start_master() {
     // Initialize the crawler controller environment
     //
     time_start = (Date.now());
-    CrawlerController.init(cpus, _master_ip, function(err, count) {
+    CrawlerController.init(cpus, _master_ip, cb, function(err, count) {
 
         //
         // If there was an error
@@ -399,7 +400,37 @@ function main(argc, argv) {
 
 }
 
+function main2(cb) {
+
+    // 
+    // Let's print out a welcome screen displaying the 
+    // application name and version
+    // 
+    print_welcome();
+
+    //
+    // Wait until database initialization is complete
+    //
+    wait_for_database(function() {
+
+        // 
+        // Start the Master worker
+        // 
+        start_master(cb);
+
+        //
+        // Prevent process from ending
+        //
+        Cpu.loop();
+
+    });
+
+}
+
 /////////////////////////////////////////////////////
 // Export the entry-point "main" to start.js       //
 /////////////////////////////////////////////////////
-module.exports = main;
+module.exports = {
+    main: main,
+    main2: main2
+};

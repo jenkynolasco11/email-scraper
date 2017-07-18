@@ -32,6 +32,7 @@ function CrawlerController() {
     //
     this._workers = [];
 
+    this._endCallback = null;
 }
 
 /////////////////////////////////////////////////////
@@ -187,13 +188,14 @@ CrawlerController.prototype.crawl = CrawlerController__crawl;
 // worker. When remoteMaster is null, the calling  //
 // server will act as a node for remote workers    //
 /////////////////////////////////////////////////////
-function CrawlerController__init(workers, dispatcherIp, callback) {
+function CrawlerController__init(workers, dispatcherIp, endCallback, callback) {
 
     //
     // Local variables
     //
     var self = this;
 
+    this._endCallback = endCallback;
     //
     // Set up the workers
     //
@@ -208,6 +210,8 @@ function CrawlerController__init(workers, dispatcherIp, callback) {
     // Intialize the dispatcher
     //
     this._dispatcher.init(workers, callback);
+
+    this._dispatcher._endCallback = this._endCallback;
 
 }
 

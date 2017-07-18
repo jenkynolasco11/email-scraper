@@ -175,6 +175,8 @@ function Dispatcher() {
 
 
     // New variables
+    this._endCallback = null;
+
     this.CCStats = null;
 
     this._nextMonth = null;
@@ -618,7 +620,7 @@ function Dispatcher__getURLs(callback) {
 
             // console.log(self._nextMonth);
             // console.log(self._nextUrl);
-            // // console.log(self.listOfMonths[0]);
+            // console.log(self._nextMonth);
             // process.exit();
 
 
@@ -799,18 +801,29 @@ function Dispatcher__ready(data, callback) {
             next: null
         }
     */
-
+    // console.log(this._nextUrl)
     if (!this._nextUrl) {
-        if (this.listOfMonths.length) {
 
-            //
-            // TODO : Check if there are new links to download
-            // 
-            this.CCStats.months[this._nextMonth].status = 'complete';
+        //
+        // TODO: Check for next month on CommonCrawl (if exists)
+        //
+        console.log(this.CCStats.months);
+        console.log(this._nextMonth);
+
+        this.CCStats.months[this._nextMonth].status = 'complete';
+
+        if (this.listOfMonths.length) {
 
             this._nextMonth = this.listOfMonths.pop();
 
+            console.log('The next month is: ', this._nextMonth);
+
             this._nextUrl = this._nextMonth.first;
+
+            console.log('The next URL is: ', this._nextUrl);
+        } else {
+            console.log('No more urls');
+            process.exit();
         }
 
         //
@@ -881,10 +894,11 @@ function Dispatcher__ready(data, callback) {
     //
     url += CommonCrawl.getBaseURL() + entry.month + "/segments/" + entry.time;
     url += "/wet/CC-MAIN-" + entry.date + "-";
-    if(entry.ip) url += ("00000" + entry.chunks).slice(-5) + "-ip-" + entry.server + "." + entry.ip + ".internal.warc.wet.gz"; 
+
+    if (entry.ip) url += ("00000" + entry.chunks).slice(-5) + "-ip-" + entry.server + "." + entry.ip + ".internal.warc.wet.gz";
     else url += entry.server + "-" + ("00000" + entry.chunks).slice(-5) + ".warc.wet.gz";
-//    console.log(url);
-//    process.exit();
+    //    console.log(url);
+    //    process.exit();
 
     //
     // Save current entry at "dispatchersettings.js"
@@ -921,7 +935,8 @@ function Dispatcher__ready(data, callback) {
 
     entry.chunks -= 1;
 
-    if (entry.chunks < 0) this._nextUrl = entry.next;
+    // if (entry.chunks >= 0) this._nextUrl = entry.next;
+    this._nextUrl = entry.next;
 
     //
     // Increment URLs processed (NEW)

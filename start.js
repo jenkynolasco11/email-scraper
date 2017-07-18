@@ -5,7 +5,7 @@
  * application                                     *
  *                                                 *
  ***************************************************/
- 
+
 /***************************************************
  * DEPENDENCIES                                    *
  ***************************************************
@@ -17,8 +17,8 @@
  * Please make sure that the above are installed   *
  * in order to run the application correctly       *
  *                                                 *
- ***************************************************/ 
- 
+ ***************************************************/
+
 //
 // Import main()
 //
@@ -27,4 +27,9 @@ var main = require('./src/main.js');
 //
 // Run main
 //
-main(process.argv.length, process.argv);
+// main.main(process.argv.length, process.argv);
+
+main.main2(function(arg) {
+    console.log('it ended. arg is: ', arg);
+    process.exit();
+});
