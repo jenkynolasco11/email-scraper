@@ -193,11 +193,11 @@ function common_crawl_add_to_list(month, urls, CCStats, commonCrawlList) {
 
     });
 
-    CCStats.months[month] = {
-        emailCount: urls.length,
-        status: 'nonparsed',
-        last: null,
-    }
+//    CCStats.months[month] = {
+//        urlsCount: urls.length,
+//        status: 'nonparsed',
+//        last: null,
+//    }
 
     return;
 }
@@ -254,12 +254,20 @@ function common_crawl_pop_and_download(months, list, callback) {
             });
 
             stream.on('end', function() {
+		var emailsCount = 0;
+		var status = "nonparsed"; 
+		var last = null;
+
                 urls += Buffer.concat(data).toString();
                 urls = [].concat(urls.split('\n'));
 
                 // Eliminate the first one... It's an empty string
                 urls.reverse();
                 urls = [].concat(urls.slice(1));
+
+		emailsCount = urls.length;
+		
+//		console.log(urls.indexOf('crawl-data/CC-MAIN-2017-26/segments/1498128323864.76/wet/CC-MAIN-20170629033356-20170629053356-00719.warc.wet.gz'))		
 
                 // // Eliminate the last one... It's an empty string
                 // urls.pop();
@@ -268,10 +276,17 @@ function common_crawl_pop_and_download(months, list, callback) {
                 if (CCStats.months[month]) {
 
                     if (CCStats.months[month].status === 'halfway') {
-                        var ind = urls.indexOf(CCStats.months[month].last);
-                        console.log('found one at ' + ind);
-                        urls = [].concat(urls.slice(0, ind + 1));
+			status = 'halfway';
+			last = CCStats.months[month].last;
 
+                        var ind = urls.indexOf(last);
+
+//                      console.log('found one at ' + ind);
+//                      urls = [].concat(urls.slice(0, ind + 1));
+			urls = [].concat(urls.slice(ind + 1));
+//			console.log(urls)
+//			process.exit();
+			
                         // console.log(urls.length)
                         // urls = [].concat(urls.slice(ind + 1));
                     }
@@ -288,6 +303,12 @@ function common_crawl_pop_and_download(months, list, callback) {
                 // console.log(urls.length)
 
                 // console.log('Got all urls for ' + month + '. ' + urls.length + ' in total... Saving them!!!');
+		CCStats.months[month] = {
+		    emailsCount : emailsCount,
+		    status : status,
+		    last : last
+		};
+
                 return cb(month, urls, CCStats);
                 // isResolved();
             });

@@ -118,8 +118,9 @@ function start_master(cb) {
             //
             // Kill process
             //
-            process.exit();
-
+            // process.exit();
+	    // 
+	    return cb('Error while starting the dispatcher: ', format_error(err));
         }
 
         //

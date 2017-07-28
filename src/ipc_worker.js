@@ -45,6 +45,7 @@ function send_ready(emails, time_taken, bytes_processed) {
     //
     Process.send('ready', (emails) ? { emails: emails, time_taken: time_taken, bytes_processed: bytes_processed } : null, function(retval) {
         //  console.log(" [CHILD] Master Process has acknowledged");
+//	console.log('here for ' + self.workerId, ' [IPC Worker]');
 
     });
 
@@ -121,6 +122,8 @@ function process_wet(stream, file) {
 // This function will process a url for emails     //
 /////////////////////////////////////////////////////
 function process_url(url) {
+    if(url === 'Finished') process.exit(); // Forcing exit of program
+
     Process.send('file', url, function(retval) {});
 
     //

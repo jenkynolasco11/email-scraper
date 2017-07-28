@@ -187,6 +187,7 @@ function Dispatcher() {
     this.semaphore = false;
     this.interval = null;
     this.emailsInserted = 0;
+    this.emailsFailed = 0;
 }
 
 
@@ -401,6 +402,7 @@ function Dispatcher__init(workers, callback) {
                             // If this happens, it's because it was already inserted
                             //
                             // self.emails = [].concat(self.emails, email);
+			    self.emailsFailed += 1;
                             sum -= 1;
                             promise = null;
                             canContinue();
@@ -408,8 +410,9 @@ function Dispatcher__init(workers, callback) {
                         }).done();
                 });
                 self.emails = _.slice(self.emails, howMany);
-                console.log('\x1b[31m <= \x1b[0mEmails in queue: ', self.emails.length);
-                console.log('\x1b[32m =X \x1b[0mEmails inserted: ', self.emailsInserted, '\n');
+                console.log('\x1b[31m  <= \x1b[0mEmails in queue: ', self.emails.length);
+                console.log('\x1b[32m = :D \x1b[0mEmails inserted: ', self.emailsInserted);
+		console.log('\x1b[33m = X( \x1b[0mEmails Failed: ', self.emailsFailed, '\n');
 
             }
         }
@@ -602,13 +605,19 @@ function Dispatcher__getURLs(callback) {
 
             var ccdb = './config/commoncrawler_db.js';
 
-            fs.writeFileSync(ccdb, data, { encoding: 'utf8' })
+            fs.writeFileSync(ccdb, data, { encoding: 'utf8' });
 	    //, function(err) {
             //    if (err) console.log('Couldn\'t write the file');
             // });
 
             // 1 for descending
             self.listOfMonths = [].concat(self._list.asArray.bind(self._list)(-1));
+
+
+/////////////////
+// 	    self.listOfMonths = self.listOfMonths.slice(-1);
+/////////////////
+
 
             // Save status for later
             self.CCStats = CCStats;
@@ -634,6 +643,34 @@ function Dispatcher__getURLs(callback) {
 }
 
 Dispatcher.prototype.getURLs = Dispatcher__getURLs;
+
+/* 
+function Dispatcher__checkNewMonth(cb){
+    if(!this.CCStats) fs.readFileSync('./config/commoncrawler_db.js');
+
+    var self = this;
+
+    Helper.download(CommonCrawl.getStartedURL(), null, function(err, body){
+	if(err) return cb('err', err);
+	
+	var month_list = CommonCrawl.monthListFromHTML(body);
+	
+	month_list.filter(function(month){
+	    return !!CCStats.months[month];
+	})
+
+	if(!month_list.length) return cb(null, CCStats)
+
+	CommonCrawl.downloadMonths(month_list, self._list, function(CCStats){
+	    
+	});
+	
+    });
+    
+};
+
+Dispatcher.prototype.checkForNewMonth = Dispatcher__checkNewMonth;
+*/
 /////////////////////////////////////////////////////
 // String Dispatcher::progress(data, callback)     //
 /////////////////////////////////////////////////////
@@ -809,7 +846,7 @@ function Dispatcher__ready(data, callback) {
         // TODO: Check for next month on CommonCrawl (if exists)
         //
         // console.log("Months list: \n", this.CCStats);
-        // console.log("Month that was worked: \n", this._nextMonth);
+        // console.log("Month that was worked: ", this._nextMonth.month);
 
         this.CCStats.months[this._nextMonth.month].status = 'complete';
 
@@ -817,14 +854,20 @@ function Dispatcher__ready(data, callback) {
 
             this._nextMonth = this.listOfMonths.pop();
 
-            console.log('The next month is: ', this._nextMonth);
+            // console.log('The next month is: ', this._nextMonth);
 
             this._nextUrl = this._nextMonth.first;
 
-            console.log('The next URL is: ', this._nextUrl);
+            // console.log('The next URL is: ', this._nextUrl);
         } else {
-            console.log('No more urls');
-            process.exit();
+	    saveCommonCrawlStats(this.CCStats);
+            // console.log('No more urls');
+	    // console.log(this);
+	    global.isCrawlerRunning = false;
+	    // throw new Error('Exiting');
+	    return callback('Finished');
+//	    this._endCallback(null, 'No more URLs');
+//            process.exit();
         }
 
         //
@@ -845,6 +888,7 @@ function Dispatcher__ready(data, callback) {
         //
         tmp = Object.keys(emails).length;
         this._stats.emails.processed += tmp;
+
         this._stats.emails.total += tmp;
 
         this.saveEmails(emails);
@@ -857,6 +901,7 @@ function Dispatcher__ready(data, callback) {
         // TODO : check for the last url already parsed. This entry can't be
         //        modified if it hasn't been processed yet
         //
+	// console.log(entry.url);
         this.CCStats.months[month].last = entry.url;
     }
 
@@ -893,7 +938,8 @@ function Dispatcher__ready(data, callback) {
     //
     // Format a URL
     //
-    url += CommonCrawl.getBaseURL() + entry.month + "/segments/" + entry.time;
+    // url += CommonCrawl.getBaseURL();
+    url += entry.month + "/segments/" + entry.time;
     url += "/wet/CC-MAIN-" + entry.date + "-";
 
     if (entry.ip) url += ("00000" + entry.chunks).slice(-5) + "-ip-" + entry.server + "." + entry.ip + ".internal.warc.wet.gz";
@@ -927,13 +973,15 @@ function Dispatcher__ready(data, callback) {
     fp.write('/* This file is auto-generated */\r\n');
     fp.write('module.exports = ' + JSON.stringify(tmp) + ';');
     fp.end();
+//
+//    // Save common crawler stats
+//    var fd = fs.createWriteStream('./config/commoncrawler_db.js');
+//    fd.write('/* This file is auto-generated */\r\n');
+//    fd.write('module.exports = ' + JSON.stringify(this.CCStats) + ';');
+//    fd.end();
+    saveCommonCrawlStats(this.CCStats);
 
-    // Save common crawler stats
-    var fd = fs.createWriteStream('./config/commoncrawler_db.js');
-    fd.write('/* This file is auto-generated */\r\n');
-    fd.write('module.exports = ' + JSON.stringify(this.CCStats) + ';');
-    fd.end();
-
+    entry.url = 'crawl-data/' + url;
     entry.chunks -= 1;
 
     if (entry.chunks < 0) this._nextUrl = entry.next;
@@ -947,7 +995,16 @@ function Dispatcher__ready(data, callback) {
     //
     // Execute callback with the next URL
     //
-    callback(url);
+    callback(CommonCrawl.getBaseURL() + url);
+}
+
+function saveCommonCrawlStats(CCStats){
+        // Save common crawler stats
+    var fd = fs.createWriteStream('./config/commoncrawler_db.js');
+    fd.write('/* This file is auto-generated */\r\n');
+    fd.write('module.exports = ' + JSON.stringify(CCStats) + ';');
+    fd.end();
+
 }
 
 Dispatcher.prototype.ready = Dispatcher__ready;
