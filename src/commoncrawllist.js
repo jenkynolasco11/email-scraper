@@ -163,18 +163,13 @@ function CommonCrawlList__add(month, time, date, chunks, server, ip, url) {
         return;
 
     }
-
-    console.log("Time: ", time)
-    console.log("Month: ", month)
-    console.log("Date: ", date)
-    console.log("Chunks: ", chunks)
-
+    var li = 0;
     obj = {
         month: month,
         time: time,
         date: date,
-        // chunks: parseInt(chunks),
-        chunks: 5,
+        chunks: parseInt(chunks),
+        // chunks: parseInt(chunks) > li ? li : parseInt(chunks),
         server: server,
         ip: ip,
         url: url,
@@ -198,6 +193,8 @@ function CommonCrawlList__add(month, time, date, chunks, server, ip, url) {
     ref.urls[time] = obj;
 
     list.months[month].count += (+chunks);
+
+    this._list.count += (+chunks);
 
     // Set new obj as last
     ref.last = obj;

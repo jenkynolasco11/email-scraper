@@ -31,9 +31,10 @@ var fs = require('fs');
 
 var fil = './config/commoncrawl_db.js';
 
-if (fs.existsSync(fil)) fs.unlinkSync(fil);
+//if (fs.existsSync(fil)) fs.unlinkSync(fil);
 
-main.main2(function(arg) {
-    console.log('it ended. arg is: ', arg);
+main.main2(function(err, arg) {
+    if(err) console.log('There was an error:', err);
+    else console.log('it ended. arg is: ', arg);
     process.exit();
 });
