@@ -164,6 +164,11 @@ function CommonCrawlList__add(month, time, date, chunks, server, ip, url) {
 
     }
 
+    console.log("Time: ", time)
+    console.log("Month: ", month)
+    console.log("Date: ", date)
+    console.log("Chunks: ", chunks)
+
     obj = {
         month: month,
         time: time,

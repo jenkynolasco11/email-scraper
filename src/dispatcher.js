@@ -590,7 +590,7 @@ function Dispatcher__getURLs(callback) {
         // Process the body into a list
         //
         month_list = CommonCrawl.monthListFromHTML(body);
-
+        // console.log(month_list);
         //
         // Download months
         //
@@ -622,7 +622,7 @@ function Dispatcher__getURLs(callback) {
             // console.log(self._nextUrl);
             // console.log(self._nextMonth);
             // process.exit();
-
+            console.log(CCStats.months)
 
             callback(null);
 
