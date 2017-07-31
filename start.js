@@ -33,8 +33,16 @@ var fil = './config/commoncrawl_db.js';
 
 //if (fs.existsSync(fil)) fs.unlinkSync(fil);
 
-main.main2(function(err, arg) {
-    if(err) console.log('There was an error:', err);
-    else console.log('it ended. arg is: ', arg);
-    process.exit();
-});
+// main.main2(function(err, arg) {
+//     if(err) console.log('There was an error:', err);
+//     else console.log('it ended. arg is: ', arg);
+//     process.exit();
+// });
+
+exports.main = function() {
+    return main.main(process.argv.length, process.argv);
+}
+
+exports.main = function(callback) {
+    return main.main2(callback)
+}

@@ -402,7 +402,7 @@ function Dispatcher__init(workers, callback) {
                             // If this happens, it's because it was already inserted
                             //
                             // self.emails = [].concat(self.emails, email);
-			    self.emailsFailed += 1;
+                            self.emailsFailed += 1;
                             sum -= 1;
                             promise = null;
                             canContinue();
@@ -412,7 +412,7 @@ function Dispatcher__init(workers, callback) {
                 self.emails = _.slice(self.emails, howMany);
                 console.log('\x1b[31m  <= \x1b[0mEmails in queue: ', self.emails.length);
                 console.log('\x1b[32m = :D \x1b[0mEmails inserted: ', self.emailsInserted);
-		console.log('\x1b[33m = X( \x1b[0mEmails Failed: ', self.emailsFailed, '\n');
+                console.log('\x1b[33m = X( \x1b[0mEmails Failed: ', self.emailsFailed, '\n');
 
             }
         }
@@ -606,7 +606,7 @@ function Dispatcher__getURLs(callback) {
             var ccdb = './config/commoncrawler_db.js';
 
             fs.writeFileSync(ccdb, data, { encoding: 'utf8' });
-	    //, function(err) {
+            //, function(err) {
             //    if (err) console.log('Couldn\'t write the file');
             // });
 
@@ -614,9 +614,9 @@ function Dispatcher__getURLs(callback) {
             self.listOfMonths = [].concat(self._list.asArray.bind(self._list)(-1));
 
 
-/////////////////
-// 	    self.listOfMonths = self.listOfMonths.slice(-1);
-/////////////////
+            /////////////////
+            // 	    self.listOfMonths = self.listOfMonths.slice(-1);
+            /////////////////
 
 
             // Save status for later
@@ -860,14 +860,14 @@ function Dispatcher__ready(data, callback) {
 
             // console.log('The next URL is: ', this._nextUrl);
         } else {
-	    saveCommonCrawlStats(this.CCStats);
+            saveCommonCrawlStats(this.CCStats);
             // console.log('No more urls');
-	    // console.log(this);
-	    global.isCrawlerRunning = false;
-	    // throw new Error('Exiting');
-	    return callback('Finished');
-//	    this._endCallback(null, 'No more URLs');
-//            process.exit();
+            // console.log(this);
+            global.isCrawlerRunning = false;
+            // throw new Error('Exiting');
+            return callback('Finished');
+            //	    this._endCallback(null, 'No more URLs');
+            //            process.exit();
         }
 
         //
@@ -901,7 +901,7 @@ function Dispatcher__ready(data, callback) {
         // TODO : check for the last url already parsed. This entry can't be
         //        modified if it hasn't been processed yet
         //
-	// console.log(entry.url);
+        // console.log(entry.url);
         this.CCStats.months[month].last = entry.url;
     }
 
@@ -973,12 +973,12 @@ function Dispatcher__ready(data, callback) {
     fp.write('/* This file is auto-generated */\r\n');
     fp.write('module.exports = ' + JSON.stringify(tmp) + ';');
     fp.end();
-//
-//    // Save common crawler stats
-//    var fd = fs.createWriteStream('./config/commoncrawler_db.js');
-//    fd.write('/* This file is auto-generated */\r\n');
-//    fd.write('module.exports = ' + JSON.stringify(this.CCStats) + ';');
-//    fd.end();
+    //
+    //    // Save common crawler stats
+    //    var fd = fs.createWriteStream('./config/commoncrawler_db.js');
+    //    fd.write('/* This file is auto-generated */\r\n');
+    //    fd.write('module.exports = ' + JSON.stringify(this.CCStats) + ';');
+    //    fd.end();
     saveCommonCrawlStats(this.CCStats);
 
     entry.url = 'crawl-data/' + url;
@@ -998,8 +998,8 @@ function Dispatcher__ready(data, callback) {
     callback(CommonCrawl.getBaseURL() + url);
 }
 
-function saveCommonCrawlStats(CCStats){
-        // Save common crawler stats
+function saveCommonCrawlStats(CCStats) {
+    // Save common crawler stats
     var fd = fs.createWriteStream('./config/commoncrawler_db.js');
     fd.write('/* This file is auto-generated */\r\n');
     fd.write('module.exports = ' + JSON.stringify(CCStats) + ';');

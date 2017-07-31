@@ -86,34 +86,34 @@ CrawlerController.prototype.startWorkers = CrawlerController__startWorkers;
 
 ///////////////////////////////////
 function CrawlerController__workerExit(id, lastfile) {
-    if(global.isCrawlerRunning){
-    	console.log('\n\x1b[32m[ Restarting ]\x1b[0m Worker #' + id + '\n');
-    	if (lastfile) console.log('\x1b[33mNOTICE:\x1b[0m URL to handle: ' + lastfile);
+    if (global.isCrawlerRunning) {
+        console.log('\n\x1b[32m[ Restarting ]\x1b[0m Worker #' + id + '\n');
+        if (lastfile) console.log('\x1b[33mNOTICE:\x1b[0m URL to handle: ' + lastfile);
 
-    	this._workers[id] = null;
-    	var worker = new Crawler(id, lastfile);
+        this._workers[id] = null;
+        var worker = new Crawler(id, lastfile);
 
-    	onReadyBind = CrawlerController__onReady.bind(this);
-	onProgressBind = CrawlerController__onProgress.bind(this);
+        onReadyBind = CrawlerController__onReady.bind(this);
+        onProgressBind = CrawlerController__onProgress.bind(this);
 
-	worker.onReady(onReadyBind);
-	worker.onProgress(onProgressBind);
-	worker.onWorkerDied = this.workerExit.bind(this);
+        worker.onReady(onReadyBind);
+        worker.onProgress(onProgressBind);
+        worker.onWorkerDied = this.workerExit.bind(this);
 
-    	this._workers[id] = worker;
-    	return this.getWorker(id).start();
+        this._workers[id] = worker;
+        return this.getWorker(id).start();
 
     } else {
-	this._workers[id] = null;
-	// Cant do this since id is the index of the worker. Indexes are going to go crazy
-	//this._workers = this._workers.filter(function(_, index){
-	//    return index != id;
-	//});
-	
-	// If all are null, it means all the workers were successfully nullified
-	var areAllNull = this._workers.every(function(el){ return el === null; })
-	console.log("Are they all null => " + areAllNull);
-	if(areAllNull) return this._endCallback(null, 'No more URLs');
+        this._workers[id] = null;
+        // Cant do this since id is the index of the worker. Indexes are going to go crazy
+        //this._workers = this._workers.filter(function(_, index){
+        //    return index != id;
+        //});
+
+        // If all are null, it means all the workers were successfully nullified
+        var areAllNull = this._workers.every(function(el) { return el === null; })
+        console.log("Are they all null => " + areAllNull);
+        if (areAllNull) return this._endCallback(null, 'No more URLs');
     }
 }
 

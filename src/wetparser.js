@@ -564,8 +564,8 @@ function _parseStream(stream, file, id, cb) {
         parser.parseChunk(chunk);
     });
 
-    function sendEmails(msg){
-	if(msg) console.log('\x1b[31m [ CHILD - ' + id +  ' ] \x1b[33mNOTICE:\x1b[0m Error while dealing with file ' + file);
+    function sendEmails(msg) {
+        if (msg) console.log('\x1b[31m [ CHILD - ' + id + ' ] \x1b[33mNOTICE:\x1b[0m Error while dealing with file ' + file);
         var elapsed = Date.now() - start_time;
 
         cb(parser.getEmails(), elapsed, bytes);
@@ -575,7 +575,7 @@ function _parseStream(stream, file, id, cb) {
     stream.on('error', sendEmails);
 
     stream.on('end', sendEmails);
-    
+
 }
 
 /////////////////////////////////////////////////////

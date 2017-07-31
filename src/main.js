@@ -119,8 +119,8 @@ function start_master(cb) {
             // Kill process
             //
             // process.exit();
-	    // 
-	    return cb('Error while starting the dispatcher: ', format_error(err));
+            // 
+            return cb('Error while starting the dispatcher: ', format_error(err));
         }
 
         //
@@ -407,24 +407,24 @@ function main2(cb) {
     // Let's print out a welcome screen displaying the 
     // application name and version
     // 
-    print_welcome();
+    // print_welcome();
 
     //
     // Wait until database initialization is complete
     //
-    wait_for_database(function() {
+    //wait_for_database(function() {
 
-        // 
-        // Start the Master worker
-        // 
-        start_master(cb);
+    // 
+    // Start the Master worker
+    // 
+    start_master(cb);
 
-        //
-        // Prevent process from ending
-        //
-        Cpu.loop();
+    //
+    // Prevent process from ending
+    //
+    Cpu.loop();
 
-    });
+    //});
 
 }
 
