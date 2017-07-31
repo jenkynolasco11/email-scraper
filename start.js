@@ -39,10 +39,11 @@ var fil = './config/commoncrawl_db.js';
 //     process.exit();
 // });
 
-exports.main = function() {
+exports.main = function(callback) {
+    if (callback) return main.main2(callback)
     return main.main(process.argv.length, process.argv);
 }
 
-exports.main = function(callback) {
-    return main.main2(callback)
-}
+// exports.main = function(callback) {
+//     return main.main2(callback)
+// }
